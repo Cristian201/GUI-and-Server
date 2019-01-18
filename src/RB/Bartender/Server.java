@@ -47,7 +47,7 @@ import sun.misc.Launcher;
 public class Server implements Runnable, Serializable {
     
     private static final int port = 49797;
-    private static final String domainName = "DESKTOP-BHRA33J";
+    private static final String domainName = "localhost";    //"DESKTOP-BHRA33J";
     private Socket socket;
     private static final int maxNumOfKiosks = 4;
     private ObjectOutputStream output;
