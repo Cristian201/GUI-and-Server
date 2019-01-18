@@ -52,7 +52,7 @@ public class Server implements Runnable, Serializable {
     private static final int maxNumOfKiosks = 4;
     private ObjectOutputStream output;
     private ObjectInputStream input;
-    public static ThreadGroup clients;
+    private static ArrayList<ObjectOutputStream> clients = new ArrayList<>();
     private boolean loggedIn = false;
     
     private static ArrayList<Bottle> ingredients = new ArrayList<>();
@@ -77,7 +77,6 @@ public class Server implements Runnable, Serializable {
     
     @Override
     public void run() {
-        
         try {
             /*
             Vodka.initBrands();
@@ -130,10 +129,23 @@ public class Server implements Runnable, Serializable {
             System.out.println("Strong " + count);
             */
             initServer();
+            getClients().add(output);
+
+            /*
+            addCustomer(new Object[] {"2", "Anthony", "Spiteri", LocalDate.of(1997, 9, 11), "Male"});
+            Customer cust = getCustomers().get(getCustomers().size() - 1);
+            cust.setBAC(0.05);
+            cust.setGramsOfAlcohol(9.562);
+            System.out.println("bac: " + cust.getBAC());
+            System.out.println("grams: " + cust.getGramsOfAlcohol());
+            System.out.println("befre");
+            sendObject(cust);
+            System.out.println("after");
+            Customer cust1 = (Customer)receiveObject();
+            System.out.println("new bac: " + cust1.getBAC());
+            System.out.println("new grams: " + cust1.getGramsOfAlcohol());
+            */
             
-            //System.out.println(getClients().activeCount());
-            //getClients().interrupt();
-            //System.out.println(Thread.currentThread().isInterrupted());
             
             String type = (String)receiveObject();  // receives the type of system connected
             if(type.equals("Kiosk")) {
@@ -161,172 +173,7 @@ public class Server implements Runnable, Serializable {
         }
     }
 
-    public void loginScreen(String action) throws IOException, ClassNotFoundException, Exception {
-        //sendObject(" 1");
-        if(action.equals("Sign Up")) {
-            sendObject(addCustomer((Object[])receiveObject()));
-            loginScreen((String)receiveObject());
-        }
-                
-        else if(action.equals("Login")) {
-            Account account = validateTagNumber((String)receiveObject());     // validate tag number
-            
-            if(account instanceof Customer) {
-                sendObject("Customer");         // tells the kiosk the account is a customer
-                sendObject((Customer)account);  // gives the kiosk the customer account info
-                setLoggedIn(true);
-                while(getLoggedIn() == true) {
-                    sendObject(customerMethods((String)receiveObject()));
-                }
-                loginScreen((String)receiveObject());
-            }
-            
-            else if(account instanceof Manager) {
-                sendObject("Manager");         // tells the kiosk the account is a manager
-                sendObject((Manager)account);  // gives the kiosk the manager account info
-                setLoggedIn(true);
-                while(getLoggedIn() == true) {
-                    sendObject(managerMethods((String)receiveObject()));
-                }
-                loginScreen((String)receiveObject());
-            }
-            else {
-                sendObject(null);
-            }
-        }
-    }
-    
-    public Object customerMethods(String method) throws IOException, ClassNotFoundException {
-        switch(method) {
-            case "getDrinkMenu":
-                //sendObject("1");
-                return getDrinkMenu();
-                
-            case "addCustomer":
-                return addCustomer((Object[])receiveObject());
-                
-            case "filterDrinkMenu":
-                //sendObject("1");
-                return filterDrinkMenu((String[])receiveObject());
-                
-            case "placeOrder":
-                return placeOrder((Object[])receiveObject());
-                
-            case "Logout":
-                Customer account = (Customer)receiveObject();
-                //System.out.println(account.getTagNumber());
-                System.out.println(account.getCart().size());
-                for(int i = 0; i < getCustomers().size(); i++) {
-                    //System.out.println(getCustomers().get(i).getTagNumber());
-                    if(getCustomers().get(i).getTagNumber().equals(account.getTagNumber())) {
-                        getCustomers().set(i, account);
-                        //System.out.println("found account");
-                        //System.out.println(getCustomers().get(i).getCart().size());
-                        
-                        break;
-                    }
-                }
-                deleteFile("Customers", account.getTagNumber());
-                createFile("Customers", account.getTagNumber(), account);
-                setLoggedIn(false);
-                return "Successfully Logged Out";
-                
-                
-            default:
-                return "Invalid Function Selected";
-        }
-    }
-    
-    public Object managerMethods(String method) throws IOException, ClassNotFoundException, Exception {
-        switch(method) {
-            case "getDrinkMenu":
-                //sendObject("1");
-                return getDrinkMenu();
-        
-            case "registerTags":
-                return registerTags((String)receiveObject());
-                
-            case "Logout":
-                Manager account = (Manager)receiveObject();
-                for(int i = 0; i < getManagers().size(); i++) {
-                    if(getManagers().get(i).getTagNumber().equals(account.getTagNumber())) {
-                        getManagers().set(i, account);
-                        break;
-                    }
-                }
-                deleteFile("Managers", account.getTagNumber());
-                createFile("Managers", account.getTagNumber(), account);
-                setLoggedIn(false);
-                
-                return "Successfully Logged Out";
-                
-            case "addBottle":
-                sendObject(getInitIngredients());
-                //System.out.println(getInitIngredients().size());
-                
-                String ingred = (String)receiveObject();
-                Class ingredientClass = Class.forName("RB.Bartender." + ingred.replace(" ", ""));
-                Method getBrands = ingredientClass.getMethod("getBrands");
-                sendObject(getBrands.invoke(null));
-                return addBottle((Object[])receiveObject());
-                
-            case "removeBottle":
-                return removeBottle((int)receiveObject());
-                
-            default:
-                return "Invalid Function Selected";
-        }
-    }
-    
-    public Object bartenderMethods(String method) {
-        switch(method) {
-            case "getDrinkMenu":
-                return getDrinkMenu();
-        
-                
-            default:
-                return "Invalid Function Selected";
-        }
-    }
-    
-    
-
-    
-    public Account validateTagNumber(String tagNumber) {
-        try {
-            if(new File("Managers//" + tagNumber + ".txt").exists()) {
-                FileInputStream file = new FileInputStream("Managers//" + tagNumber + ".txt");
-                ObjectInputStream fileInput = new ObjectInputStream(file);
-               
-                Manager manager = (Manager)fileInput.readObject();
-                
-                fileInput.close();
-                file.close();
-
-                return manager;
-            }
-        
-            else if(new File("Customers//" + tagNumber + ".txt").exists()) {
-                FileInputStream file = new FileInputStream("Customers//" + tagNumber + ".txt");
-                ObjectInputStream fileInput = new ObjectInputStream(file);
-               
-                Customer customer = (Customer)fileInput.readObject();
-                
-                fileInput.close();
-                file.close();
-                
-                return customer;
-            }
-            
-        } catch (IOException | ClassNotFoundException i) {
-            Logger.getLogger(Kiosk.class.getName()).log(Level.SEVERE, null, i);
-        }
-        
-        return null;
-    }
-    
     public void initServer() throws Exception {
-        
         ArrayList<String> ingredClasses = new ArrayList<>();
         
         if(inIDE == false) {
@@ -406,7 +253,7 @@ public class Server implements Runnable, Serializable {
         for(int i = 0; i < getIngredients().size(); i++) {
             updateDrinks("add", getIngredients().get(i).getIngredient().getType());
         }
-        
+         
         File tags = new File("RegisteredTags");
         File[] listOfTags = tags.listFiles();
         for(File listOfTag : listOfTags) {
@@ -427,7 +274,165 @@ public class Server implements Runnable, Serializable {
             }
         }
     }
+    
+    public void loginScreen(String action) throws IOException, ClassNotFoundException, Exception {
+        if(action.equals("Sign Up")) {
+            sendObject(addCustomer((Object[])receiveObject()));
+            loginScreen((String)receiveObject());
+        }
+                
+        else if(action.equals("Login")) {
+            Account account = validateTagNumber((String)receiveObject());     // validate tag number
+            
+            if(account instanceof Customer) {
+                sendObject("Customer");         // tells the kiosk the account is a customer
+                sendObject((Customer)account);  // gives the kiosk the customer account info
+                setLoggedIn(true);
+                while(getLoggedIn() == true) {
+                    sendObject(customerMethods((String)receiveObject()));
+                }
+                loginScreen((String)receiveObject());
+            }
+            
+            else if(account instanceof Manager) {
+                sendObject("Manager");         // tells the kiosk the account is a manager
+                sendObject((Manager)account);  // gives the kiosk the manager account info
+                setLoggedIn(true);
+                while(getLoggedIn() == true) {
+                    sendObject(managerMethods((String)receiveObject()));
+                }
+                loginScreen((String)receiveObject());
+            }
+            else {
+                sendObject("Error Finding Account");
+            }
+        }
+    }
+    
+    public Object customerMethods(String method) throws IOException, ClassNotFoundException {
+        switch(method) {
+            case "getDrinkMenu":
+                return getDrinkMenu();
+                
+            case "addCustomer":
+                return addCustomer((Object[])receiveObject());
+                
+            case "filterDrinkMenu":
+                return filterDrinkMenu((String[])receiveObject());
+                
+            case "placeOrder":
+                return placeOrder((Object[])receiveObject());
+                
+            case "Logout":
+                Customer account = (Customer)receiveObject();
+                for(int i = 0; i < getCustomers().size(); i++) {
+                    if(getCustomers().get(i).getTagNumber().equals(account.getTagNumber())) {
+                        getCustomers().set(i, account);
+                        break;
+                    }
+                }
+                deleteFile("Customers", account.getTagNumber());
+                createFile("Customers", account.getTagNumber(), account);
+                setLoggedIn(false);
+                return "Successfully Logged Out";
+                
+            case "Notify Manager":
+                Object[] info = (Object[])receiveObject();
+                for(int i = 0; i < getClients().size(); i++) {
+                    getClients().get(i).writeObject("Notify Manager");
+                    getClients().get(i).writeObject(info);
+                }
+                return "";
+                
+            default:
+                System.out.println("method requested: " + method);  // for debugging
+                return "Invalid Function Selected";
+        }
+    }
+    
+    public Object managerMethods(String method) throws IOException, ClassNotFoundException, Exception {
+        switch(method) {
+            case "getDrinkMenu":
+                return getDrinkMenu();
         
+            case "registerTags":
+                return registerTags((String)receiveObject());
+                
+            case "Logout":
+                Manager account = (Manager)receiveObject();
+                for(int i = 0; i < getManagers().size(); i++) {
+                    if(getManagers().get(i).getTagNumber().equals(account.getTagNumber())) {
+                        getManagers().set(i, account);
+                        break;
+                    }
+                }
+                deleteFile("Managers", account.getTagNumber());
+                createFile("Managers", account.getTagNumber(), account);
+                setLoggedIn(false);
+                
+                return "Successfully Logged Out";
+                
+            case "addBottle":
+                sendObject(getInitIngredients());
+                String ingred = (String)receiveObject();
+                Class ingredientClass = Class.forName("RB.Bartender." + ingred.replace(" ", ""));
+                Method getBrands = ingredientClass.getMethod("getBrands");
+                sendObject(getBrands.invoke(null));
+                return addBottle((Object[])receiveObject());
+                
+            case "removeBottle":
+                return removeBottle((int)receiveObject());
+                
+            default:
+                System.out.println("method requested: " + method);  // for debugging
+                return "Invalid Function Selected";
+        }
+    }
+    
+    public Object bartenderMethods(String method) {
+        switch(method) {
+            case "getDrinkMenu":
+                return getDrinkMenu();
+        
+                
+            default:
+                System.out.println("method requested: " + method);  // for debugging
+                return "Invalid Function Selected";
+        }
+    }
+    
+    public Account validateTagNumber(String tagNumber) {
+        try {
+            if(new File("Managers//" + tagNumber + ".txt").exists()) {
+                FileInputStream file = new FileInputStream("Managers//" + tagNumber + ".txt");
+                ObjectInputStream fileInput = new ObjectInputStream(file);
+               
+                Manager manager = (Manager)fileInput.readObject();
+                
+                fileInput.close();
+                file.close();
+
+                return manager;
+            }
+        
+            else if(new File("Customers//" + tagNumber + ".txt").exists()) {
+                FileInputStream file = new FileInputStream("Customers//" + tagNumber + ".txt");
+                ObjectInputStream fileInput = new ObjectInputStream(file);
+               
+                Customer customer = (Customer)fileInput.readObject();
+                
+                fileInput.close();
+                file.close();
+                
+                return customer;
+            }
+            
+        } catch (IOException | ClassNotFoundException i) {
+            Logger.getLogger(Kiosk.class.getName()).log(Level.SEVERE, null, i);
+        }
+        return null;
+    }
+    
     public String addBottle(Object[] info) throws Exception {
         Ingredient ingredient = (Ingredient)info[0];
         int size = (int)info[1];
@@ -447,19 +452,16 @@ public class Server implements Runnable, Serializable {
     
     public String removeBottle(int slot) throws Exception {
         for(int i = 0; i < getIngredients().size(); i++) {
-            if(getIngredients().get(i).getSlot() == slot) {
-                
+            if(getIngredients().get(i).getSlot() == slot) {  
                 updateDrinks("remove", getIngredients().get(i).getIngredient().getType());
                 deleteFile("Ingredients", getIngredients().get(i).getIngredient().getName());
                 String ingredient = getIngredients().get(i).getIngredient().getName();
                 getIngredients().remove(i); 
-                
                 return ingredient + " is Removed from Slot " + slot;
             }
         } 
         return "Error Removing Bottle from Slot " + slot;
     }
-    
     
     public void updateDrinks(String action, String ingred) throws Exception {
         Class ingredientClass = Class.forName("RB.Bartender." + ingred.replace(" ", ""));
@@ -508,6 +510,7 @@ public class Server implements Runnable, Serializable {
                 }
             }
         }
+        
         else if(action.equals("remove")) {
             ArrayList<Drink> drinkMenu = new ArrayList<>(getDrinkMenu());
 
@@ -520,17 +523,12 @@ public class Server implements Runnable, Serializable {
             }
         }
         
-       // getClients().
+        for(int i = 0; i < getClients().size(); i++) {
+            getClients().get(i).writeObject("Update");
+            getClients().get(i).writeObject(getDrinkMenu());
+            System.out.println("sent new menu");
+        }
 
-        //ThreadGroup clients = Thread.currentThread().getThreadGroup();
-        //clients.interrupt();
-        //System.out.println(getClients().activeCount());
-        
-        //sendObject("Update");
-        //sendObject(getDrinkMenu());
-        //System.out.println("updated drink menu sent....");
-        //sendObject("");
-        
         drinks.clear();
     }
     
@@ -544,7 +542,7 @@ public class Server implements Runnable, Serializable {
             case "Type":
                 for(int i = 0; i < drinks.size(); i++) {
                     if(drinks.get(i).getType().equals(type)) {
-                            filtered.add(drinks.get(i));
+                        filtered.add(drinks.get(i));
                     }
                 }
                 return filtered;
@@ -562,25 +560,25 @@ public class Server implements Runnable, Serializable {
             case "Strength":
                 for(int i = 0; i < drinks.size(); i++) {
                     if(drinks.get(i).getStrength().equals(type)) {
-                            filtered.add(drinks.get(i));
+                        filtered.add(drinks.get(i));
                     }
                 }
                 return filtered;
                 
             case "Price":
                 if(type.equals("Low to High")) {
-                    
                     Collections.sort(drinks, (Drink d1, Drink d2) -> Double.compare(d1.getPrice(), d2.getPrice()));
                     return drinks;
                 }
                     
                 else if(type.equals("High to Low")) {
-                    
                     Collections.sort(drinks, (Drink d1, Drink d2) -> Double.compare(d2.getPrice(), d1.getPrice()));
                     return drinks;
                 }
+                
+            default:
+                return null;
         }
-        return null;
     }
 
     public String placeOrder(Object[] info) throws IOException {
@@ -589,7 +587,7 @@ public class Server implements Runnable, Serializable {
         Customer customer = (Customer)info[1];
         ArrayList<String> ingredientNames = new ArrayList<>();
         
-        for(int i = 0; i < drinks.size(); i++) {
+        for(int i = 0; i < getIngredients().size(); i++) {
             ingredientNames.add(getIngredients().get(i).getIngredient().getType());
         }
         
@@ -758,7 +756,6 @@ public class Server implements Runnable, Serializable {
         }
     }
     
-
     private boolean deleteFile(String folder, String file) {
         boolean answer = false;
         File user = new File(folder + "//" + file + ".txt");
@@ -766,8 +763,8 @@ public class Server implements Runnable, Serializable {
             if(user.delete()) {
                 return answer = true;
             }
-        }    
-    return answer;
+        }
+        return answer;
     }
     
     public static int getPort() {
@@ -828,6 +825,10 @@ public class Server implements Runnable, Serializable {
         return socket;
     }
     
+    public ArrayList<ObjectOutputStream> getClients() {
+        return clients;
+    }
+    
     public void sendObject(Object obj) throws IOException {
         output.writeObject(obj);
     }
@@ -859,18 +860,13 @@ public class Server implements Runnable, Serializable {
                 
                 while(true) {
                     Socket socket = server.accept();                   
-                    new Thread(clients, new Server(socket)).start();
+                    new Thread(new Server(socket)).start();
                 }
                 
             case "k": 
                 Socket socket = new Socket(getDomainName(), getPort()); 
                 System.out.println("Connecting To " + getDomainName() + " On Port " + getPort());
-                
-                //getClients().add(new Thread(new Kiosk(socket)));
-                //getClients().get(getClients().size() - 1).start();
-                
                 new Thread(new Kiosk(socket)).start();
-                
                 break;
             
             case "b":

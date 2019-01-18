@@ -10,8 +10,10 @@ import java.time.LocalDate;
 import java.time.Period;
 import java.util.ArrayList;
 import java.util.TreeSet;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.SynchronousQueue;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -32,6 +34,7 @@ public class Kiosk implements Runnable, Serializable {
     private final int kioskNumber = 1;
     private boolean receiveMessage = true;
     public Thread updateThread;
+    private SynchronousQueue queue = new SynchronousQueue();
     
     public Kiosk(Socket socket) throws IOException {
         this.socket = socket;
@@ -43,12 +46,10 @@ public class Kiosk implements Runnable, Serializable {
     public void run() {
         try {
             System.out.println("Kiosk Connected");
-
+            
             sendObject("Kiosk");    // notifies the server that a kiosk is connected
-            //sendObject(Thread.currentThread());
             
-            
-            //createThread();
+            createThread();
             
             /*
             sendObject("1");
@@ -56,54 +57,50 @@ public class Kiosk implements Runnable, Serializable {
             sendObject(new Object[] {"1", "John", "Smith"});
             System.out.println(receiveObject());
         */
-            login("1");
+            //login("1");
 
-        
-        } catch (IOException ex) {
-            Logger.getLogger(Kiosk.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (ClassNotFoundException ex) {
+            managerFunctions();
+            
+            //logout();
+            //socket.close();
+            
+        } catch (IOException | ClassNotFoundException | InterruptedException ex) {
             Logger.getLogger(Kiosk.class.getName()).log(Level.SEVERE, null, ex);
         }
 
     }
 
-    public void managerFunctions() throws IOException, ClassNotFoundException {
-        
+    public void managerFunctions() throws IOException, ClassNotFoundException, InterruptedException {
+  
         sendObject("Sign Up");  // notifies the server that user wants to create a new account
             
         sendObject(new Object[] {"2", "Anthony", "Spiteri", LocalDate.of(1997, 9, 11), "Male"});
         System.out.println(receiveObject());
-        
         login("2");
         
     }
     
-    public void login(String tagNumber) throws IOException, ClassNotFoundException {
-        
-        //updateThread.interrupt();
-        
-        
-        //receiveObject();
+    public void login(String tagNumber) throws IOException, ClassNotFoundException, InterruptedException {
         sendObject("Login");
         sendObject(tagNumber);    // tag is scanned and the tag number is sent to verify
         String type = (String)receiveObject();
-        //System.out.println("");
       
         switch (type) {
             case "Customer":
                 setCustomer((Customer)receiveObject());
-                
+                output.reset(); /////////
                 sendObject("getDrinkMenu");
-                //TreeSet<Drink> temp = (TreeSet<Drink>)receiveObject();
-                //ArrayList<Drink> drinks = new ArrayList<>(temp);
                 setDrinkMenu((TreeSet<Drink>)receiveObject());
                 System.out.println(getDrinkMenu().size());
 
+                /*
                 sendObject("filterDrinkMenu");
                 sendObject(new String[] {"Price", "High to Low"});
                 setDrinkMenu((ArrayList<Drink>)receiveObject());
                 for(int i = 0; i < getDrinkMenu().size(); i++)
                     System.out.println(getDrinkMenu().get(i).getName()+"  "+getDrinkMenu().get(i).getPrice());
+                
+                */
                 
                 sendObject("filterDrinkMenu");
                 sendObject(new String[] {"Price", "Low to High"});
@@ -111,18 +108,20 @@ public class Kiosk implements Runnable, Serializable {
                 for(int i = 0; i < getDrinkMenu().size(); i++)
                     System.out.println(getDrinkMenu().get(i).getName()+"  "+getDrinkMenu().get(i).getPrice());
                 
-                //System.out.println(getDrinkMenu().size());
+                System.out.println(getDrinkMenu().size());
                 System.out.println(addToCart(getDrinkMenu().get(0)));
                 System.out.println(addToCart(getDrinkMenu().get(1)));
                 
                 placeOrder();
                 
+                System.out.println("about to log out..");
                 logout();
                 
                 break;
+                
             case "Manager":
                 setManager((Manager)receiveObject());
-                
+                /*
                 sendObject("registerTags");
                 sendObject("2");
                 System.out.println(receiveObject());
@@ -157,8 +156,10 @@ public class Kiosk implements Runnable, Serializable {
                 logout();
                 
                 managerFunctions();
-                
+                */
                 break;
+
+                
             
             default:
                 System.out.println("Invalid Tag");
@@ -167,18 +168,20 @@ public class Kiosk implements Runnable, Serializable {
         }
     }
     
-    public String placeOrder() throws IOException, ClassNotFoundException {
-        
-        System.out.println(((System.currentTimeMillis() - getCustomer().getFirstDrinkTime())*(0.001/3600))%24);
+    public String placeOrder() throws IOException, ClassNotFoundException, InterruptedException {
+        System.out.println(getCustomer().getFirstDrinkTime());
+        System.out.println("time diff from now to last drink in hours");
+        System.out.println((System.currentTimeMillis() - getCustomer().getFirstDrinkTime()) / (60*60*1000));
         if(!getCustomer().getCart().isEmpty()) {
             // if the firstDrinkTime is zero or if it has been 6 hours since their last drink
-            if(getCustomer().getFirstDrinkTime() == 0 || ((System.currentTimeMillis() - getCustomer().getFirstDrinkTime())*(0.001/3600)) % 24 > 6) { 
+            if(getCustomer().getFirstDrinkTime() == 0 || ((System.currentTimeMillis() - getCustomer().getFirstDrinkTime()) / (60*60*1000)) > 6) { 
                 getCustomer().setFirstDrinkTime(System.currentTimeMillis());
                 getCustomer().setGramsOfAlcohol(0);
                 getCustomer().setBAC(0);
                 getCustomer().setNumOfWeakDrinks(0);
                 getCustomer().setNumOfMediumDrinks(0);
                 getCustomer().setNumOfStrongDrinks(0);
+                System.out.println("cust data reset... new diff of drink time:"); 
             }
             
             double bac = 0;
@@ -188,7 +191,7 @@ public class Kiosk implements Runnable, Serializable {
             int numOfMediumDrinks = 0;
             int numOfStrongDrinks = 0;
             
-            System.out.println(getCustomer().getCart().size());
+            //System.out.println("inital cart size: " + getCustomer().getCart().size());
             
             for(int i = 0; i < getCustomer().getCart().size(); i++) {
                 double[] info = getCustomer().calculateBAC(getCustomer().getCart().get(i));
@@ -220,34 +223,35 @@ public class Kiosk implements Runnable, Serializable {
                 notifyManager(bac);
                 getCustomer().setLockedOut(true);
                 System.out.println("We Believe That You Are Over Intoxicated\nIf there is an Error, Please Notify a Manager");
-            }
+            }  
             else if(bac >= Server.getWarningLimit()) {
-                notifyManager(bac);
-                sendObject("placeOrder");
-                sendObject(new Object[] {getCustomer().getCart(), getCustomer()});
-                System.out.println(receiveObject());
                 getCustomer().setGramsOfAlcohol(grams);
                 getCustomer().setBAC(bac);
                 getCustomer().setBalance(getCustomer().getBalance() + balance);
                 getCustomer().setNumOfWeakDrinks(getCustomer().getNumOfWeakDrinks() + numOfWeakDrinks);
                 getCustomer().setNumOfMediumDrinks(getCustomer().getNumOfMediumDrinks() + numOfMediumDrinks);
                 getCustomer().setNumOfStrongDrinks(getCustomer().getNumOfStrongDrinks() + numOfStrongDrinks);
+                sendObject("placeOrder");
+                sendObject(new Object[] {getCustomer().getCart(), getCustomer()});
+                System.out.println(receiveObject());
+                notifyManager(bac);
+                getCustomer().getLastOrder().addAll(getCustomer().getCart());
                 getCustomer().getCart().clear();
-                System.out.println(getCustomer().getCart().size());
+                output.reset();
             }
             else {
-                System.out.println(getCustomer().getCart().size());
-                sendObject("placeOrder");
-                sendObject(new Object[] {getCustomer().getCart(), getCustomer()});
-                System.out.println(receiveObject());
                 getCustomer().setGramsOfAlcohol(grams);
                 getCustomer().setBAC(bac);
                 getCustomer().setBalance(getCustomer().getBalance() + balance);
                 getCustomer().setNumOfWeakDrinks(getCustomer().getNumOfWeakDrinks() + numOfWeakDrinks);
                 getCustomer().setNumOfMediumDrinks(getCustomer().getNumOfMediumDrinks() + numOfMediumDrinks);
                 getCustomer().setNumOfStrongDrinks(getCustomer().getNumOfStrongDrinks() + numOfStrongDrinks);
+                sendObject("placeOrder");
+                sendObject(new Object[] {getCustomer().getCart(), getCustomer()});
+                System.out.println(receiveObject());
+                getCustomer().getLastOrder().addAll(getCustomer().getCart());
                 getCustomer().getCart().clear();
-                System.out.println(getCustomer().getCart().size());
+                output.reset();
             }
         }
         else {
@@ -255,7 +259,6 @@ public class Kiosk implements Runnable, Serializable {
         }
         return "Error Placing Order";
     }
-    
     
     public String addToCart(Drink drink) {
         if(drink.getSpiritAmount() != 0) {
@@ -271,27 +274,23 @@ public class Kiosk implements Runnable, Serializable {
         return drink.getName() + " has Been Added to Your Cart";
     }
     
-    public void notifyManager(double bac) {
-        
+    public void notifyManager(double bac) throws IOException, InterruptedException, ClassNotFoundException {
+        sendObject("Notify Manager");
+        sendObject(new Object[] {kioskNumber, getCustomer(), bac});
+        receiveObject();
     }
     
-    public void logout() throws IOException, ClassNotFoundException {
+    public void logout() throws IOException, ClassNotFoundException, InterruptedException {
         sendObject("Logout");
         
         if(getCustomer() != null && getManager() == null) {
-            //System.out.println("hello");
-            System.out.println(getCustomer().getCart().size());
             sendObject(getCustomer());
-            //System.out.println("cust");
-            System.out.println(receiveObject());
-            
+            System.out.println(receiveObject());      
             setCustomer(null);
-            System.out.println(getCustomer());
             getDrinkMenu().clear();
         }
         else if(getCustomer() == null && getManager() != null) {
             sendObject(getManager());
-            //System.out.println("hello1");
             System.out.println(receiveObject());
             setManager(null);
             getDrinkMenu().clear();
@@ -335,38 +334,51 @@ public class Kiosk implements Runnable, Serializable {
         drinkMenu = new ArrayList<>(drinks);
     }
     
-    
     public void sendObject(Object obj) throws IOException {
         output.writeObject(obj);
     }
     
-    public Object receiveObject() throws IOException, ClassNotFoundException {
-        Object message = input.readObject();
-
-        if(message.equals("Update")) {
-            System.out.println("There is an Update");
-            update();
-            return receiveObject();
-        }
-        return message;
+    public Object receiveObject() throws IOException, ClassNotFoundException, InterruptedException {
+        return queue.take();
     }  
     
-    public void update() throws IOException, ClassNotFoundException {
-        setDrinkMenu((TreeSet<Drink>) receiveObject());
-        System.out.println("drink menu updated....");
-    }
-    
-    
     public void createThread() {
+        
         updateThread = new Thread(() -> {
             try {
-                while(!Thread.currentThread().isInterrupted()) {
-                    receiveObject();
-                
+                while(true) {
+                    Object message = input.readObject();
+                        
+                    //System.out.println("recieve an message..");
+                    if(message.equals("Update")) {
+                        System.out.println("there is an new drinkMenu...");
+                        setDrinkMenu((TreeSet<Drink>)input.readObject());
+                    }
+        
+                    else if(message.equals("Notify Manager")) {
+                        if(getManager() != null) {
+                          
+                            Object[] info = (Object[])input.readObject();
+                            int kioskNumber = (int)info[0];
+                            Customer customer = (Customer)info[1];
+                            double bac = (double)info[2];
+
+                            System.out.println("At Kiosk " + kioskNumber + " ," + customer.getFirstName() + " " + customer.getLastName() + " has a BAC of " + bac); 
+                        }
+
+                        else {
+                            receiveObject();
+                        }
+                    }
+                        
+                    else {
+                        //System.out.println("in thread else.....");
+                        queue.put(message); 
+                    }
                 }
-            } catch (Exception ex) {
-                System.exit(0);
-            }
+            } catch (IOException | ClassNotFoundException | InterruptedException ex) {
+                Logger.getLogger(Kiosk.class.getName()).log(Level.SEVERE, null, ex);
+            }   
         });
         updateThread.start();
     }
