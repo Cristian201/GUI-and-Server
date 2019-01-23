@@ -5,7 +5,7 @@ Current Features:
 - add/remove bottles
 - update drinks menu
 - get drinks menu
-- filter drinks menu (type, ingredient, strength, price)
+- filter drinks menu (type, ingredient, strength, price, most popular)
 - add customers
 - place orders and calculate BAC levels of customer
 - login, signup and logout

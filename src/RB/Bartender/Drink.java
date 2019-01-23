@@ -20,8 +20,9 @@ public class Drink implements Comparable<Drink>, Serializable, Cloneable {
     private boolean shake;
     private Double price;
     private double spiritAmount;
+    private int count;
     
-    // For when initalizing the drinks
+    // for when initalizing the drinks
     public Drink(String name, String[] ingredName, double[] amount, Glass glass, boolean ice, boolean shake, Double price) {
         this.name = name;
         this.ingredName = ingredName;
@@ -32,7 +33,7 @@ public class Drink implements Comparable<Drink>, Serializable, Cloneable {
         this.price = price;
     }
     
-    // for when adding drins to drinkMenu (with ingredients)
+    // for when adding drinks to drinkMenu (with ingredients)
     public Drink(String name, Ingredient[] ingredient, double[] amount, Glass glass, boolean ice, boolean shake, Double price, double spiritAmount) {
         this.name = name;
         this.ingredient = ingredient;
@@ -42,6 +43,12 @@ public class Drink implements Comparable<Drink>, Serializable, Cloneable {
         this.shake = shake;
         this.price = price;
         this.spiritAmount = spiritAmount;
+    }
+    
+    // to determine popularity of the drinks
+    public Drink(String name) {
+        this.name = name;
+        this.count = 0;
     }
     
     @Override
@@ -105,7 +112,15 @@ public class Drink implements Comparable<Drink>, Serializable, Cloneable {
     public void setShake(boolean shake) {
         this.shake = shake;
     }
-     
+    
+    public int getCount() {
+        return count;
+    }
+    
+    public void setCount(int count) {
+        this.count = count;
+    }
+    
     public String getType() {
         if(getShake() == true && getGlass().getName().equals("Highball")) {
             return "Cocktail";

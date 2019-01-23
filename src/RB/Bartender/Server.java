@@ -55,13 +55,14 @@ public class Server implements Runnable, Serializable {
     private static ArrayList<ObjectOutputStream> clients = new ArrayList<>();
     private boolean loggedIn = false;
     
-    private static ArrayList<Bottle> ingredients = new ArrayList<>();
-    private static TreeSet<Drink> drinkMenu = new TreeSet<>();
-    private static ArrayList<Customer> customers = new ArrayList<>();
-    private static ArrayList<Manager> managers = new ArrayList<>();
-    private static ArrayList<String> registeredTags = new ArrayList<>();
-    private ArrayList<String> initIngredients = new ArrayList<>();
-    private static ArrayList<Order> orders = new ArrayList<>();
+    private static ArrayList<Bottle> ingredients = new ArrayList<>();       // all ingredients currently available to the Robotic Bartender
+    private static TreeSet<Drink> drinkMenu = new TreeSet<>();              // all drinks currently available to be made
+    private static ArrayList<Customer> customers = new ArrayList<>();       // all activated customer accounts
+    private static ArrayList<Manager> managers = new ArrayList<>();         // all activated manager accounts
+    private static ArrayList<String> registeredTags = new ArrayList<>();    // all regsitered tags
+    private ArrayList<String> initIngredients = new ArrayList<>();          // all ingredients initalized to the Robotic Bartender
+    private static ArrayList<Order> orders = new ArrayList<>();             // all orders in the queue
+    private static ArrayList<Drink> drinks = new ArrayList<>();             // list of all possible drinks to determine drink popularity
     
     private static final int drinkingAge = 19;
     private static final double warningLimit = 0.05;
@@ -89,7 +90,6 @@ public class Server implements Runnable, Serializable {
             LemonJuice.initBrands();
             SimpleSyrup.initBrands();
             
-            
             addBottle(new Object[] {Vodka.getBrands().get(0), 20, 1});
             addBottle(new Object[] {CranberryJuice.getBrands().get(0), 25, 2});
             addBottle(new Object[] {LemonJuice.getBrands().get(0), 25, 3});
@@ -99,7 +99,9 @@ public class Server implements Runnable, Serializable {
             addBottle(new Object[] {SimpleSyrup.getBrands().get(0), 20, 7});
             addBottle(new Object[] {SodaWater.getBrands().get(0), 20, 8});
             addBottle(new Object[] {TripleSec.getBrands().get(0), 20, 9});
+            */
             
+            /*
             ArrayList<Drink> drinkMenu = new ArrayList<>(getDrinkMenu());
             int count = 0;
             System.out.println(drinkMenu.size());
@@ -146,12 +148,8 @@ public class Server implements Runnable, Serializable {
             System.out.println("new grams: " + cust1.getGramsOfAlcohol());
             */
             
-            
             String type = (String)receiveObject();  // receives the type of system connected
             if(type.equals("Kiosk")) {
-                //getClients().add((Thread)receiveObject());
-                
-                
                 if(getManagers().isEmpty()) {
                     sendObject(registerTags((String)receiveObject()));
                     sendObject(addManager((Object[])receiveObject()));
@@ -161,9 +159,8 @@ public class Server implements Runnable, Serializable {
             }                
             
             else if(type.equals("Bartender")) {
-                //getBartenders().add(getSocket());
-            }
-    
+                
+            } 
         } catch (IOException ex) {
             Logger.getLogger(Server.class.getName()).log(Level.SEVERE, null, ex);
         } catch (ClassNotFoundException ex) {
@@ -174,6 +171,7 @@ public class Server implements Runnable, Serializable {
     }
 
     public void initServer() throws Exception {
+        // gets all the ingredient classes
         ArrayList<String> ingredClasses = new ArrayList<>();
         
         if(inIDE == false) {
@@ -211,15 +209,28 @@ public class Server implements Runnable, Serializable {
         
         ingredClasses.remove("RB.Bartender.Ingredient");
         
+        // initalizes all ingredient brands
+        TreeSet<Drink> temp = new TreeSet<>();
+        
         for(int i = 0; i < ingredClasses.size(); i++) {
             Class ingredientClass = Class.forName(ingredClasses.get(i));
             
             Method initBrands = ingredientClass.getMethod("initBrands");
             initBrands.invoke(null);
+            
+            Method initDrinks = ingredientClass.getMethod("initDrinks");
+            initDrinks.invoke(null);
+            
+            Method getDrinks = ingredientClass.getMethod("getDrinks");
+            ArrayList<Drink> drinks = (ArrayList<Drink>)getDrinks.invoke(null);
+        
+            temp.addAll(drinks);
 
             getInitIngredients().add(ingredientClass.toString().substring(19).replaceAll("(\\p{Ll})(\\p{Lu})","$1 $2"));
         }
-
+        getDrinks().addAll(temp);
+        
+        // initalizes all managers
         File man = new File("Managers");
         File[] listOfManagers = man.listFiles();
         for(File listOfManager : listOfManagers) {
@@ -229,7 +240,8 @@ public class Server implements Runnable, Serializable {
                 }
             }
         }
-        
+
+        // initalizes all customers
         File cust = new File("Customers");
         File[] listOfCustomers = cust.listFiles();
         for(File listOfCustomer : listOfCustomers) {
@@ -240,6 +252,7 @@ public class Server implements Runnable, Serializable {
             }
         }
         
+        // initalizes all ingredients and updates the drinkMenu
         File ingred = new File("Ingredients");
         File[] listOfIngred = ingred.listFiles();
         for(File listOfIngred1 : listOfIngred) {
@@ -253,7 +266,8 @@ public class Server implements Runnable, Serializable {
         for(int i = 0; i < getIngredients().size(); i++) {
             updateDrinks("add", getIngredients().get(i).getIngredient().getType());
         }
-         
+        
+        // initalizes all the registered tags
         File tags = new File("RegisteredTags");
         File[] listOfTags = tags.listFiles();
         for(File listOfTag : listOfTags) {
@@ -264,6 +278,7 @@ public class Server implements Runnable, Serializable {
             }
         }
         
+        // initalizes all orders
         File order = new File("Orders");
         File[] listOfOrders = order.listFiles();
         for(File listOfOrder : listOfOrders) {
@@ -303,6 +318,7 @@ public class Server implements Runnable, Serializable {
                 }
                 loginScreen((String)receiveObject());
             }
+            
             else {
                 sendObject("Error Finding Account");
             }
@@ -369,7 +385,6 @@ public class Server implements Runnable, Serializable {
                 deleteFile("Managers", account.getTagNumber());
                 createFile("Managers", account.getTagNumber(), account);
                 setLoggedIn(false);
-                
                 return "Successfully Logged Out";
                 
             case "addBottle":
@@ -427,8 +442,8 @@ public class Server implements Runnable, Serializable {
                 return customer;
             }
             
-        } catch (IOException | ClassNotFoundException i) {
-            Logger.getLogger(Kiosk.class.getName()).log(Level.SEVERE, null, i);
+        } catch (IOException | ClassNotFoundException ex) {
+            Logger.getLogger(Kiosk.class.getName()).log(Level.SEVERE, null, ex);
         }
         return null;
     }
@@ -465,9 +480,6 @@ public class Server implements Runnable, Serializable {
     
     public void updateDrinks(String action, String ingred) throws Exception {
         Class ingredientClass = Class.forName("RB.Bartender." + ingred.replace(" ", ""));
-        
-        Method initDrinks = ingredientClass.getMethod("initDrinks");
-        initDrinks.invoke(null);
             
         Method getDrinks = ingredientClass.getMethod("getDrinks");
         ArrayList<Drink> drinks = (ArrayList<Drink>)getDrinks.invoke(null);
@@ -526,7 +538,6 @@ public class Server implements Runnable, Serializable {
         for(int i = 0; i < getClients().size(); i++) {
             getClients().get(i).writeObject("Update");
             getClients().get(i).writeObject(getDrinkMenu());
-            System.out.println("sent new menu");
         }
 
         drinks.clear();
@@ -576,6 +587,17 @@ public class Server implements Runnable, Serializable {
                     return drinks;
                 }
                 
+            case "Most Popular":
+                Collections.sort(getDrinks(), (Drink d1, Drink d2) -> Double.compare(d2.getCount(), d1.getCount()));
+                
+                for(int i = 0; i < getDrinks().size(); i++) {
+                    int index = search(drinks, getDrinks().get(i).getName());
+                    if(index != -1) {
+                        filtered.add(drinks.get(index));
+                    }
+                }
+                return filtered;
+                
             default:
                 return null;
         }
@@ -604,6 +626,11 @@ public class Server implements Runnable, Serializable {
         
         if(!getOrders().isEmpty()) {
             number = getOrders().get(getOrders().size() - 1).getNumber() + 1;
+        }
+        
+        for(int i = 0; i < drinks.size(); i++) {
+            int index = search(getDrinks(), drinks.get(i).getName());
+            getDrinks().get(index).setCount(getDrinks().get(index).getCount() + 1);
         }
         
         getOrders().add(new Order(number, drinks, customer));
@@ -767,6 +794,27 @@ public class Server implements Runnable, Serializable {
         return answer;
     }
     
+    public int search(ArrayList<Drink> drinks, String name) {
+        int low = 0;
+        int high = drinks.size() - 1;
+        int middle;
+
+        while(low <= high) {
+            middle = (low + high) / 2;
+
+            if(drinks.get(middle).getName().compareTo(name) < 0) {
+                low = middle + 1;
+            }
+            else if (drinks.get(middle).getName().compareTo(name) > 0) {
+                high = middle - 1;
+            }
+            else {
+                return middle;
+            }
+        }
+        return -1;
+    }
+    
     public static int getPort() {
         return port;
     }   
@@ -813,6 +861,11 @@ public class Server implements Runnable, Serializable {
     private ArrayList<Order> getOrders() {
         return orders;
     }
+    
+    private ArrayList<Drink> getDrinks() {
+        return drinks;
+    }
+    
     public boolean getLoggedIn() {
         return loggedIn;
     }

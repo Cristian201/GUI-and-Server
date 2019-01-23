@@ -46,9 +46,7 @@ public class Kiosk implements Runnable, Serializable {
     public void run() {
         try {
             System.out.println("Kiosk Connected");
-            
             sendObject("Kiosk");    // notifies the server that a kiosk is connected
-            
             createThread();
             
             /*
@@ -56,7 +54,8 @@ public class Kiosk implements Runnable, Serializable {
             System.out.println(receiveObject());
             sendObject(new Object[] {"1", "John", "Smith"});
             System.out.println(receiveObject());
-        */
+            */
+            
             //login("1");
 
             managerFunctions();
@@ -67,7 +66,6 @@ public class Kiosk implements Runnable, Serializable {
         } catch (IOException | ClassNotFoundException | InterruptedException ex) {
             Logger.getLogger(Kiosk.class.getName()).log(Level.SEVERE, null, ex);
         }
-
     }
 
     public void managerFunctions() throws IOException, ClassNotFoundException, InterruptedException {
@@ -103,7 +101,7 @@ public class Kiosk implements Runnable, Serializable {
                 */
                 
                 sendObject("filterDrinkMenu");
-                sendObject(new String[] {"Price", "Low to High"});
+                sendObject(new String[] {"Most Popular", null});
                 setDrinkMenu((ArrayList<Drink>)receiveObject());
                 for(int i = 0; i < getDrinkMenu().size(); i++)
                     System.out.println(getDrinkMenu().get(i).getName()+"  "+getDrinkMenu().get(i).getPrice());
@@ -159,12 +157,9 @@ public class Kiosk implements Runnable, Serializable {
                 */
                 break;
 
-                
-            
             default:
                 System.out.println("Invalid Tag");
                 break;
-        
         }
     }
     
@@ -191,16 +186,12 @@ public class Kiosk implements Runnable, Serializable {
             int numOfMediumDrinks = 0;
             int numOfStrongDrinks = 0;
             
-            //System.out.println("inital cart size: " + getCustomer().getCart().size());
-            
             for(int i = 0; i < getCustomer().getCart().size(); i++) {
                 double[] info = getCustomer().calculateBAC(getCustomer().getCart().get(i));
                 bac = bac + info[0];
                 grams = grams + info[1];
                 balance = balance + getCustomer().getCart().get(i).getPrice();
  
-                System.out.println(getCustomer().getCart().get(i).getPrice() + "    " + getCustomer().getCart().get(i).getName());
-                
                 switch (getCustomer().getCart().get(i).getStrength()) {
                     case "Weak":
                         numOfWeakDrinks++;
@@ -231,12 +222,13 @@ public class Kiosk implements Runnable, Serializable {
                 getCustomer().setNumOfWeakDrinks(getCustomer().getNumOfWeakDrinks() + numOfWeakDrinks);
                 getCustomer().setNumOfMediumDrinks(getCustomer().getNumOfMediumDrinks() + numOfMediumDrinks);
                 getCustomer().setNumOfStrongDrinks(getCustomer().getNumOfStrongDrinks() + numOfStrongDrinks);
-                sendObject("placeOrder");
-                sendObject(new Object[] {getCustomer().getCart(), getCustomer()});
-                System.out.println(receiveObject());
-                notifyManager(bac);
+                getCustomer().getLastOrder().clear();
                 getCustomer().getLastOrder().addAll(getCustomer().getCart());
                 getCustomer().getCart().clear();
+                sendObject("placeOrder");
+                sendObject(new Object[] {getCustomer().getLastOrder(), getCustomer()});
+                System.out.println(receiveObject());
+                notifyManager(bac);
                 output.reset();
             }
             else {
@@ -246,11 +238,12 @@ public class Kiosk implements Runnable, Serializable {
                 getCustomer().setNumOfWeakDrinks(getCustomer().getNumOfWeakDrinks() + numOfWeakDrinks);
                 getCustomer().setNumOfMediumDrinks(getCustomer().getNumOfMediumDrinks() + numOfMediumDrinks);
                 getCustomer().setNumOfStrongDrinks(getCustomer().getNumOfStrongDrinks() + numOfStrongDrinks);
-                sendObject("placeOrder");
-                sendObject(new Object[] {getCustomer().getCart(), getCustomer()});
-                System.out.println(receiveObject());
+                getCustomer().getLastOrder().clear();
                 getCustomer().getLastOrder().addAll(getCustomer().getCart());
                 getCustomer().getCart().clear();
+                sendObject("placeOrder");
+                sendObject(new Object[] {getCustomer().getLastOrder(), getCustomer()});
+                System.out.println(receiveObject());
                 output.reset();
             }
         }
@@ -348,13 +341,11 @@ public class Kiosk implements Runnable, Serializable {
             try {
                 while(true) {
                     Object message = input.readObject();
-                        
-                    //System.out.println("recieve an message..");
+
                     if(message.equals("Update")) {
                         System.out.println("there is an new drinkMenu...");
                         setDrinkMenu((TreeSet<Drink>)input.readObject());
                     }
-        
                     else if(message.equals("Notify Manager")) {
                         if(getManager() != null) {
                           
@@ -365,12 +356,10 @@ public class Kiosk implements Runnable, Serializable {
 
                             System.out.println("At Kiosk " + kioskNumber + " ," + customer.getFirstName() + " " + customer.getLastName() + " has a BAC of " + bac); 
                         }
-
                         else {
                             receiveObject();
                         }
-                    }
-                        
+                    }                        
                     else {
                         //System.out.println("in thread else.....");
                         queue.put(message); 
