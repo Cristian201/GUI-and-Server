@@ -9,7 +9,7 @@ import java.io.Serializable;
  *          Shahezad Kassam
  */
 
-public class Manager extends Account implements Serializable{
+public class Manager extends Account implements Serializable {
     Manager(String tagNumber, String firstName, String lastName) {
         super(tagNumber, firstName, lastName);
     }

@@ -56,4 +56,8 @@ public class LemonJuice extends Ingredient implements Serializable, Cloneable {
         drinks.add(new Drink("Tom Collins", new String[]{"Gin", "Lemon Juice", "Simple Syrup", "Soda Water"}, new double[]{0.25, 0.15, 0.1, 0.5}, Glass.getHighball(), true, true, null));
         drinks.add(new Drink("Madras", new String[]{"Vodka", "Cranberry Juice", "Orange Juice", "Lemon Juice"}, new double[]{0.17, 0.56, 0.17, 0.1}, Glass.getHighball(), true, false, null));
     }
+        
+    public static boolean isAlcohol() {
+        return false;
+    }
 }

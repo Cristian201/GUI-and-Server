@@ -58,4 +58,8 @@ public class Gin extends Ingredient implements Serializable, Cloneable {
         drinks.add(new Drink("Singapore Sling", new String[]{"Gin", "Orange Juice", "Lemon Juice", "Soda Water"}, new double[]{0.2, 0.4, 0.1, 0.3}, Glass.getHighball(), true, false, null));
         drinks.add(new Drink("Tom Collins", new String[]{"Gin", "Lemon Juice", "Simple Syrup", "Soda Water"}, new double[]{0.25, 0.15, 0.1, 0.5}, Glass.getHighball(), true, true, null));
     }
+        
+    public static boolean isAlcohol() {
+        return true;
+    }
 }

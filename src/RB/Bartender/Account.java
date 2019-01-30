@@ -10,9 +10,9 @@ import java.io.Serializable;
  */
 
 public class Account implements Serializable{
-    private String tagNumber;
-    private String firstName;
-    private String lastName;
+    private final String tagNumber;
+    private final String firstName;
+    private final String lastName;
     
     public Account(String tagNumber, String firstName, String lastName) {
         this.tagNumber = tagNumber;

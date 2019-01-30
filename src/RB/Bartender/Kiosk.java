@@ -28,11 +28,10 @@ public class Kiosk implements Runnable, Serializable {
     private Socket socket;
     private ObjectOutputStream output;
     private static ObjectInputStream input;
+    private final int kioskNumber = 1;
     private Customer customer;
     private Manager manager;
     private ArrayList<Drink> drinkMenu = new ArrayList<>();
-    private final int kioskNumber = 1;
-    private boolean receiveMessage = true;
     public Thread updateThread;
     private SynchronousQueue queue = new SynchronousQueue();
     
@@ -86,29 +85,38 @@ public class Kiosk implements Runnable, Serializable {
         switch (type) {
             case "Customer":
                 setCustomer((Customer)receiveObject());
-                output.reset(); /////////
+                
                 sendObject("getDrinkMenu");
+                sendObject(getCustomer());
                 setDrinkMenu((TreeSet<Drink>)receiveObject());
                 System.out.println(getDrinkMenu().size());
 
                 /*
                 sendObject("filterDrinkMenu");
+                ArrayList<String> ingred = (ArrayList<String>)receiveObject();
+                for(int i = 0; i < ingred.size(); i++)
+                    System.out.println(ingred.get(i));
                 sendObject(new String[] {"Price", "High to Low"});
                 setDrinkMenu((ArrayList<Drink>)receiveObject());
                 for(int i = 0; i < getDrinkMenu().size(); i++)
                     System.out.println(getDrinkMenu().get(i).getName()+"  "+getDrinkMenu().get(i).getPrice());
                 
                 */
-                
+                System.out.println("about to filter menu");
                 sendObject("filterDrinkMenu");
+                ArrayList<String> ingredients = new ArrayList<>((ArrayList<String>)receiveObject());    // gonna receive all the ingredients in the Robotic Bartender
+                for(int i = 0; i < ingredients.size(); i++)
+                    System.out.println(ingredients.get(i));
+                
                 sendObject(new String[] {"Most Popular", null});
                 setDrinkMenu((ArrayList<Drink>)receiveObject());
+                System.out.println(getDrinkMenu().size());
                 for(int i = 0; i < getDrinkMenu().size(); i++)
                     System.out.println(getDrinkMenu().get(i).getName()+"  "+getDrinkMenu().get(i).getPrice());
                 
                 System.out.println(getDrinkMenu().size());
                 System.out.println(addToCart(getDrinkMenu().get(0)));
-                System.out.println(addToCart(getDrinkMenu().get(1)));
+                System.out.println(addToCart(getDrinkMenu().get(2)));
                 
                 placeOrder();
                 
@@ -119,7 +127,7 @@ public class Kiosk implements Runnable, Serializable {
                 
             case "Manager":
                 setManager((Manager)receiveObject());
-                /*
+                
                 sendObject("registerTags");
                 sendObject("2");
                 System.out.println(receiveObject());
@@ -154,13 +162,27 @@ public class Kiosk implements Runnable, Serializable {
                 logout();
                 
                 managerFunctions();
-                */
+                
                 break;
 
             default:
                 System.out.println("Invalid Tag");
                 break;
         }
+    }
+    
+    public String addToCart(Drink drink) {
+        if(drink.getSpiritAmount() != 0) {
+            if(getCustomer().getAge() >= Server.getDrinkingAge()) {
+                getCustomer().getCart().add(drink);
+                return drink.getName() + " has Been Added to Your Cart";
+            }
+            else {
+                return "Customer is not of the Legal Drinking Age to Order an Alcholic Drink";
+            }
+        }
+        getCustomer().getCart().add(drink);
+        return drink.getName() + " has Been Added to Your Cart";
     }
     
     public String placeOrder() throws IOException, ClassNotFoundException, InterruptedException {
@@ -253,20 +275,6 @@ public class Kiosk implements Runnable, Serializable {
         return "Error Placing Order";
     }
     
-    public String addToCart(Drink drink) {
-        if(drink.getSpiritAmount() != 0) {
-            if(getCustomer().getAge() >= Server.getDrinkingAge()) {
-                getCustomer().getCart().add(drink);
-                return drink.getName() + " has Been Added to Your Cart";
-            }
-            else {
-                return "Customer is not of the Legal Drinking Age to Order an Alcholic Drink";
-            }
-        }
-        getCustomer().getCart().add(drink);
-        return drink.getName() + " has Been Added to Your Cart";
-    }
-    
     public void notifyManager(double bac) throws IOException, InterruptedException, ClassNotFoundException {
         sendObject("Notify Manager");
         sendObject(new Object[] {kioskNumber, getCustomer(), bac});
@@ -296,6 +304,14 @@ public class Kiosk implements Runnable, Serializable {
     public Socket getSocket() {
         return socket;
     }
+    
+    public void sendObject(Object obj) throws IOException {
+        output.writeObject(obj);
+    }
+    
+    public Object receiveObject() throws IOException, ClassNotFoundException, InterruptedException {
+        return queue.take();
+    }  
     
     private Customer getCustomer() {
         return customer;
@@ -327,16 +343,7 @@ public class Kiosk implements Runnable, Serializable {
         drinkMenu = new ArrayList<>(drinks);
     }
     
-    public void sendObject(Object obj) throws IOException {
-        output.writeObject(obj);
-    }
-    
-    public Object receiveObject() throws IOException, ClassNotFoundException, InterruptedException {
-        return queue.take();
-    }  
-    
     public void createThread() {
-        
         updateThread = new Thread(() -> {
             try {
                 while(true) {
@@ -354,7 +361,7 @@ public class Kiosk implements Runnable, Serializable {
                             Customer customer = (Customer)info[1];
                             double bac = (double)info[2];
 
-                            System.out.println("At Kiosk " + kioskNumber + " ," + customer.getFirstName() + " " + customer.getLastName() + " has a BAC of " + bac); 
+                            System.out.println("At Kiosk " + kioskNumber + ", " + customer.getFirstName() + " " + customer.getLastName() + " has a BAC of " + bac); 
                         }
                         else {
                             receiveObject();

@@ -47,4 +47,8 @@ public class SimpleSyrup extends Ingredient implements Serializable, Cloneable {
         drinks.add(new Drink("Gimlet", new String[]{"Gin", "Lemon Juice", "Simple Syrup"}, new double[]{0.56, 0.22, 0.22}, Glass.getMartini(), false, true, null));
         drinks.add(new Drink("Tom Collins", new String[]{"Gin", "Lemon Juice", "Simple Syrup", "Soda Water"}, new double[]{0.25, 0.15, 0.1, 0.5}, Glass.getHighball(), true, true, null));
     }
+        
+    public static boolean isAlcohol() {
+        return false;
+    }
 }

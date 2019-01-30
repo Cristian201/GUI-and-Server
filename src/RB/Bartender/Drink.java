@@ -13,7 +13,6 @@ public class Drink implements Comparable<Drink>, Serializable, Cloneable {
     private final String name;
     private String[] ingredName;
     private Ingredient[] ingredient;
-    //private String[] ingredType;
     private double[] amount;
     private Glass glass;
     private boolean ice;
@@ -72,10 +71,6 @@ public class Drink implements Comparable<Drink>, Serializable, Cloneable {
     public Ingredient[] getIngredient() {
         return ingredient;
     }
-    
-    //public String[] getIngredType() {
-    //    return ingredType;
-    //}
     
     public double[] getAmount() {
         return amount;

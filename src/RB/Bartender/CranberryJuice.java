@@ -54,5 +54,9 @@ public class CranberryJuice extends Ingredient implements Serializable, Cloneabl
         drinks.add(new Drink("Cranberry Soda", new String[]{"Cranberry Juice", "Soda Water"}, new double[]{0.33, 0.33, 0.33}, Glass.getHighball(), true, false, null));
         drinks.add(new Drink("Orange Cranberry", new String[]{"Cranberry Juice", "Orange Juice"}, new double[]{0.5, 0.5}, Glass.getHighball(), true, false, null));
     }
+    
+    public static boolean isAlcohol() {
+        return false;
+    }
 }
 

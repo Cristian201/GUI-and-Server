@@ -12,7 +12,6 @@ import java.io.Serializable;
 public class Glass implements Serializable, Cloneable {
     final String name;
     final double volume;
-    final double volumeOfIce = 1;
     
     public Glass(String name, double volume) {
         this.name = name;
@@ -27,18 +26,15 @@ public class Glass implements Serializable, Cloneable {
         return volume;
     }
     
-    public double getVolumeOfIce() {
-        return volumeOfIce;
+    public final static double getVolumeOfIce() {
+        return 1;   // need to change
     }
     
-    public double getVolumeOfDillution(Drink drink) {
-        if(drink.getShake() == true && drink.getIce() == true) {
-            return 1;   // need to change
-        }
-        
-        return 0;
+    public final static double getVolumeOfDillution() {
+        return 1;   // need to change
     }
     
+    /*
     public double getRemainingVolume(Drink drink) {
         double volumeOfIngred = 0;
         for(int i = 0; i < drink.getIngredient().length; i++) {
@@ -46,20 +42,21 @@ public class Glass implements Serializable, Cloneable {
         }
         return drink.getGlass().getVolume() - volumeOfIngred - getVolumeOfDillution(drink);
     }
+    */
     
-    public static Glass getHighball() {
+    public final static Glass getHighball() {
         return new Glass("Highball", 6);
     }
     
-    public static Glass getMartini() {
+    public final static Glass getMartini() {
         return new Glass("Martini", 3);
     }
     
-    public static Glass getRock() {
+    public final static Glass getRock() {
         return new Glass("Rock", 4);
     }
     
-    public static Glass getShot() {
+    public final static Glass getShot() {
         return new Glass("Shot", 1);
     }    
 }

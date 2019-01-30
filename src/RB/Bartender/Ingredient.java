@@ -42,6 +42,4 @@ public abstract class Ingredient implements Comparable<Ingredient>, Serializable
     public String getType() {
         return type;
     }
-    
-    
 }

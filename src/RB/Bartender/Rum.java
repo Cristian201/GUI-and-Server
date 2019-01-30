@@ -59,6 +59,10 @@ public class Rum extends Ingredient implements Serializable, Cloneable {
         drinks.add(new Drink("Rum Shot", new String[]{"Rum"}, new double[]{1.0}, Glass.getShot(), false, true, null));
         drinks.add(new Drink("Ti-Punch", new String[]{"Rum", "Simple Syrup", "Lemon Juice"}, new double[]{0.55, 0.3, 0.15}, Glass.getRock(), true, false, null));
     }
+        
+    public static boolean isAlcohol() {
+        return true;
+    }
 }
 
     

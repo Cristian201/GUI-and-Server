@@ -10,9 +10,9 @@ import java.io.Serializable;
  */
 
 public class Bottle implements Serializable {
-    private Ingredient ingredient;
-    private int size;
-    private int slot;
+    private final Ingredient ingredient;
+    private final int size;
+    private final int slot;
     
     public Bottle(Ingredient ingredient, int size, int slot) {
         this.ingredient = ingredient;

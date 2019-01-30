@@ -68,4 +68,8 @@ public class Vodka extends Ingredient implements Serializable, Cloneable {
         drinks.add(new Drink("Vodka On The Rocks", new String[]{"Vodka"}, new double[]{0.375}, Glass.getRock(), true, false, null));
         drinks.add(new Drink("Vodka Shot", new String[]{"Vodka"}, new double[]{1.0}, Glass.getShot(), false, true, null));
     }
+        
+    public static boolean isAlcohol() {
+        return true;
+    }
 }

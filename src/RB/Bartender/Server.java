@@ -170,7 +170,7 @@ public class Server implements Runnable, Serializable {
         }
     }
 
-    public void initServer() throws Exception {
+    private void initServer() throws Exception {
         // gets all the ingredient classes
         ArrayList<String> ingredClasses = new ArrayList<>();
         
@@ -209,7 +209,7 @@ public class Server implements Runnable, Serializable {
         
         ingredClasses.remove("RB.Bartender.Ingredient");
         
-        // initalizes all ingredient brands
+        // initializes all ingredient brands
         TreeSet<Drink> temp = new TreeSet<>();
         
         for(int i = 0; i < ingredClasses.size(); i++) {
@@ -228,36 +228,63 @@ public class Server implements Runnable, Serializable {
 
             getInitIngredients().add(ingredientClass.toString().substring(19).replaceAll("(\\p{Ll})(\\p{Lu})","$1 $2"));
         }
-        getDrinks().addAll(temp);
         
-        // initalizes all managers
+        // initializes all drinks     
+        ArrayList<Drink> allDrinks = new ArrayList<>(temp);
+        ArrayList<String> drinkNames = new ArrayList<>();
+        File drinks = new File("Drinks");
+        File[] listOfDrinks = drinks.listFiles();
+        
+        for(int i = 0; i < listOfDrinks.length; i++) {
+            drinkNames.add(listOfDrinks[i].getName().substring(0, listOfDrinks[i].getName().length() - 4));
+        }
+        
+        // initializes the data to determine popularity of the drink
+        for(int i = 0; i < allDrinks.size(); i++) {
+            int index = nameSearch(drinkNames, allDrinks.get(i).getName());
+            if(index != -1) {
+                if(listOfDrinks[index].isFile() && listOfDrinks[index].getName().endsWith(".txt")) {
+                    try (FileInputStream file = new FileInputStream(listOfDrinks[i]); ObjectInputStream fileInput = new ObjectInputStream(file)) {
+                        Drink drink = (Drink)fileInput.readObject();
+                        getDrinks().add(new Drink(drink.getName()));
+                        getDrinks().get(getDrinks().size() - 1).setCount(drink.getCount());
+                    }
+                }
+            }
+            else {
+                getDrinks().add(new Drink(allDrinks.get(i).getName()));
+                createFile("Drinks", allDrinks.get(i).getName(), getDrinks().get(getDrinks().size() - 1));
+            }
+        }
+
+        // initializes all managers
         File man = new File("Managers");
         File[] listOfManagers = man.listFiles();
-        for(File listOfManager : listOfManagers) {
-            if(listOfManager.isFile() && listOfManager.getName().endsWith(".txt")) {
-                try (FileInputStream file = new FileInputStream(listOfManager); ObjectInputStream fileInput = new ObjectInputStream(file)) {
+        for(int i = 0; i < listOfManagers.length; i++) {
+            if(listOfManagers[i].isFile() && listOfManagers[i].getName().endsWith(".txt")) {
+                try (FileInputStream file = new FileInputStream(listOfManagers[i]); ObjectInputStream fileInput = new ObjectInputStream(file)) {
                     getManagers().add((Manager)fileInput.readObject());
                 }
             }
         }
 
-        // initalizes all customers
+        // initializes all customers
         File cust = new File("Customers");
         File[] listOfCustomers = cust.listFiles();
-        for(File listOfCustomer : listOfCustomers) {
-            if(listOfCustomer.isFile() && listOfCustomer.getName().endsWith(".txt")) {
-                try (FileInputStream file = new FileInputStream(listOfCustomer); ObjectInputStream fileInput = new ObjectInputStream(file)) {
+        for(int i = 0; i < listOfCustomers.length; i++) {
+            if(listOfCustomers[i].isFile() && listOfCustomers[i].getName().endsWith(".txt")) {
+                try (FileInputStream file = new FileInputStream(listOfCustomers[i]); ObjectInputStream fileInput = new ObjectInputStream(file)) {
                     getCustomers().add((Customer)fileInput.readObject());
                 }
             }
         }
         
-        // initalizes all ingredients and updates the drinkMenu
+        // initializes all available ingredients and updates the drinkMenu
         File ingred = new File("Ingredients");
-        File[] listOfIngred = ingred.listFiles();
-        for(File listOfIngred1 : listOfIngred) {
-            if(listOfIngred1.isFile() && listOfIngred1.getName().endsWith(".txt")) {
-                try (FileInputStream file = new FileInputStream(listOfIngred1); ObjectInputStream fileInput = new ObjectInputStream(file)) {
+        File[] listOfIngreds = ingred.listFiles();
+        for(int i = 0; i < listOfIngreds.length; i++) {
+            if(listOfIngreds[i].isFile() && listOfIngreds[i].getName().endsWith(".txt")) {
+                try (FileInputStream file = new FileInputStream(listOfIngreds[i]); ObjectInputStream fileInput = new ObjectInputStream(file)) {
                     getIngredients().add((Bottle)fileInput.readObject());
                 }
             }
@@ -267,41 +294,42 @@ public class Server implements Runnable, Serializable {
             updateDrinks("add", getIngredients().get(i).getIngredient().getType());
         }
         
-        // initalizes all the registered tags
+        // initializes all the registered tags
         File tags = new File("RegisteredTags");
         File[] listOfTags = tags.listFiles();
-        for(File listOfTag : listOfTags) {
-            if(listOfTag.isFile() && listOfTag.getName().endsWith(".txt")) {
-                try (FileInputStream file = new FileInputStream(listOfTag); ObjectInputStream fileInput = new ObjectInputStream(file)) { 
+        for(int i = 0; i < listOfTags.length; i++) {
+            if(listOfTags[i].isFile() && listOfTags[i].getName().endsWith(".txt")) {
+                try (FileInputStream file = new FileInputStream(listOfTags[i]); ObjectInputStream fileInput = new ObjectInputStream(file)) { 
                     getRegisteredTags().add((String)fileInput.readObject()); 
                 }
             }
         }
         
-        // initalizes all orders
+        // initializes all orders
         File order = new File("Orders");
         File[] listOfOrders = order.listFiles();
-        for(File listOfOrder : listOfOrders) {
-            if(listOfOrder.isFile() && listOfOrder.getName().endsWith(".txt")) {
-                try (FileInputStream file = new FileInputStream(listOfOrder); ObjectInputStream fileInput = new ObjectInputStream(file)) { 
+        for(int i = 0; i < listOfOrders.length; i++) {
+            if(listOfOrders[i].isFile() && listOfOrders[i].getName().endsWith(".txt")) {
+                try (FileInputStream file = new FileInputStream(listOfOrders[i]); ObjectInputStream fileInput = new ObjectInputStream(file)) { 
                     getOrders().add((Order)fileInput.readObject());
                 }
             }
         }
+        System.out.println("Server Initialized");
     }
     
-    public void loginScreen(String action) throws IOException, ClassNotFoundException, Exception {
+    private void loginScreen(String action) throws IOException, ClassNotFoundException, Exception {
         if(action.equals("Sign Up")) {
             sendObject(addCustomer((Object[])receiveObject()));
             loginScreen((String)receiveObject());
         }
                 
         else if(action.equals("Login")) {
-            Account account = validateTagNumber((String)receiveObject());     // validate tag number
+            Account account = validateTagNumber((String)receiveObject());   // validate tag number
             
             if(account instanceof Customer) {
-                sendObject("Customer");         // tells the kiosk the account is a customer
-                sendObject((Customer)account);  // gives the kiosk the customer account info
+                sendObject("Customer");                                     // tells the kiosk the account is a customer
+                sendObject((Customer)account);                              // gives the kiosk the customer account info
                 setLoggedIn(true);
                 while(getLoggedIn() == true) {
                     sendObject(customerMethods((String)receiveObject()));
@@ -310,8 +338,8 @@ public class Server implements Runnable, Serializable {
             }
             
             else if(account instanceof Manager) {
-                sendObject("Manager");         // tells the kiosk the account is a manager
-                sendObject((Manager)account);  // gives the kiosk the manager account info
+                sendObject("Manager");                                      // tells the kiosk the account is a manager
+                sendObject((Manager)account);                               // gives the kiosk the manager account info
                 setLoggedIn(true);
                 while(getLoggedIn() == true) {
                     sendObject(managerMethods((String)receiveObject()));
@@ -325,19 +353,67 @@ public class Server implements Runnable, Serializable {
         }
     }
     
-    public Object customerMethods(String method) throws IOException, ClassNotFoundException {
+    private Object customerMethods(String method) throws Exception {
         switch(method) {
             case "getDrinkMenu":
-                return getDrinkMenu();
+                TreeSet<Drink> drinks = new TreeSet<>(getDrinkMenu());  
+                Customer customer = (Customer)receiveObject();
+                ArrayList<String> ingredientNames = new ArrayList<>();                          // list of all ingredient names in Robotic Bartender
+            
+                for(int i = 0; i < getIngredients().size(); i++) {
+                    ingredientNames.add(getIngredients().get(i).getIngredient().getType());
+                }
+
+                for(int i = 0; i < customer.getCustomizedDrinks().size(); i++) {
+                    Drink drink = customer.getCustomizedDrinks().get(i);
+                    List<String> ingredient = Arrays.asList(drink.getIngredName());             // list of all ingredients in the selected drink
+
+                    if(ingredientNames.containsAll(ingredient)) {                               // if Robotic Bartender has all the ingredients needed to make the drink
+                        Ingredient[] ingredientBrands = new Ingredient[ingredient.size()];
+                        double spiritAmount = 0;
+
+                        for(int j = 0; j < ingredient.size(); j++) {
+                            int index = ingredientNames.indexOf(ingredient.get(j));
+                            ingredientBrands[j] = getIngredients().get(index).getIngredient();  // adds the ingredient bottle to the ingredientBrands list
+                            if(ingredientBrands[j].getABV() != 0) {
+                                spiritAmount = spiritAmount + drink.getAmount()[j];
+                            }
+                        }
+                        spiritAmount = spiritAmount*drink.getGlass().getVolume();
+
+                        if(drink.getPrice() == null) {
+                            if(0 <= spiritAmount && spiritAmount < 1.5) {
+                                drink.setPrice(5);
+                            }
+                            else if(1.5 <= spiritAmount && spiritAmount < 2.5) {
+                                drink.setPrice(6.5);
+                            }
+                            else if(2.5 <= spiritAmount) {
+                                drink.setPrice(8);
+                            }
+                        }
+                        drinks.add(new Drink(drink.getName(), ingredientBrands, drink.getAmount(), drink.getGlass(), drink.getIce(), drink.getShake(), drink.getPrice(), spiritAmount));
+                    }
+                }
+                return drinks;
                 
             case "addCustomer":
                 return addCustomer((Object[])receiveObject());
                 
             case "filterDrinkMenu":
+                ArrayList<String> ingred = new ArrayList<>();
+                for(int i = 0; i < getIngredients().size(); i++) {
+                    ingred.add(getIngredients().get(i).getIngredient().getType());
+                }
+                Collections.sort(ingred);
+                sendObject(ingred); // sends all ingredients in the Robotic Bartender
                 return filterDrinkMenu((String[])receiveObject());
                 
             case "placeOrder":
                 return placeOrder((Object[])receiveObject());
+                
+            case "createDrink":
+                return createDrink((Object[])receiveObject());
                 
             case "Logout":
                 Customer account = (Customer)receiveObject();
@@ -366,7 +442,7 @@ public class Server implements Runnable, Serializable {
         }
     }
     
-    public Object managerMethods(String method) throws IOException, ClassNotFoundException, Exception {
+    private Object managerMethods(String method) throws IOException, ClassNotFoundException, Exception {
         switch(method) {
             case "getDrinkMenu":
                 return getDrinkMenu();
@@ -404,7 +480,7 @@ public class Server implements Runnable, Serializable {
         }
     }
     
-    public Object bartenderMethods(String method) {
+    private Object bartenderMethods(String method) {
         switch(method) {
             case "getDrinkMenu":
                 return getDrinkMenu();
@@ -416,7 +492,7 @@ public class Server implements Runnable, Serializable {
         }
     }
     
-    public Account validateTagNumber(String tagNumber) {
+    private Account validateTagNumber(String tagNumber) {
         try {
             if(new File("Managers//" + tagNumber + ".txt").exists()) {
                 FileInputStream file = new FileInputStream("Managers//" + tagNumber + ".txt");
@@ -448,7 +524,7 @@ public class Server implements Runnable, Serializable {
         return null;
     }
     
-    public String addBottle(Object[] info) throws Exception {
+    private String addBottle(Object[] info) throws Exception {
         Ingredient ingredient = (Ingredient)info[0];
         int size = (int)info[1];
         int slot = (int)info[2];
@@ -465,7 +541,7 @@ public class Server implements Runnable, Serializable {
         return ingredient.getName() + " is Added to Slot " + slot;
     }
     
-    public String removeBottle(int slot) throws Exception {
+    private String removeBottle(int slot) throws Exception {
         for(int i = 0; i < getIngredients().size(); i++) {
             if(getIngredients().get(i).getSlot() == slot) {  
                 updateDrinks("remove", getIngredients().get(i).getIngredient().getType());
@@ -478,29 +554,29 @@ public class Server implements Runnable, Serializable {
         return "Error Removing Bottle from Slot " + slot;
     }
     
-    public void updateDrinks(String action, String ingred) throws Exception {
+    private void updateDrinks(String action, String ingred) throws Exception {
         Class ingredientClass = Class.forName("RB.Bartender." + ingred.replace(" ", ""));
             
         Method getDrinks = ingredientClass.getMethod("getDrinks");
         ArrayList<Drink> drinks = (ArrayList<Drink>)getDrinks.invoke(null);
         
         if(action.equals("add")) {
-            ArrayList<String> ingredientNames = new ArrayList<>();
+            ArrayList<String> ingredientNames = new ArrayList<>();                          // list of all ingredient names in Robotic Bartender
             
             for(int i = 0; i < getIngredients().size(); i++) {
                 ingredientNames.add(getIngredients().get(i).getIngredient().getType());
             }
 
             for(int i = 0; i < drinks.size(); i++) {
-                List<String> ingredient = Arrays.asList(drinks.get(i).getIngredName());
+                List<String> ingredient = Arrays.asList(drinks.get(i).getIngredName());     // list of all ingredients in the selected drink
                 
-                if(ingredientNames.containsAll(ingredient)) {
+                if(ingredientNames.containsAll(ingredient)) {                               // if Robotic Bartender has all the ingredients needed to make the drink
                     Ingredient[] ingredientBrands = new Ingredient[ingredient.size()];
                     double spiritAmount = 0;
                     
                     for(int j = 0; j < ingredient.size(); j++) {
                         int index = ingredientNames.indexOf(ingredient.get(j));
-                        ingredientBrands[j] = getIngredients().get(index).getIngredient();
+                        ingredientBrands[j] = getIngredients().get(index).getIngredient();  // adds the ingredient bottle to the ingredientBrands list
                         if(ingredientBrands[j].getABV() != 0) {
                             spiritAmount = spiritAmount + drinks.get(i).getAmount()[j];
                         }
@@ -528,6 +604,7 @@ public class Server implements Runnable, Serializable {
 
             for(int i = 0; i < drinkMenu.size(); i++) {            
                 for(int j = 0; j < drinks.size(); j++) {
+                    // if the drinkMenu contains a drink will the ingredient getting removed
                     if(drinkMenu.get(i).getName().equals(drinks.get(j).getName()) && drinkMenu.contains(drinkMenu.get(i))) {
                         getDrinkMenu().remove(drinkMenu.get(i));
                     }
@@ -543,7 +620,7 @@ public class Server implements Runnable, Serializable {
         drinks.clear();
     }
     
-    public ArrayList<Drink> filterDrinkMenu(String[] info) {
+    private ArrayList<Drink> filterDrinkMenu(String[] info) {
         String category = info[0];
         String type = info[1];
         ArrayList<Drink> drinks = new ArrayList<>(getDrinkMenu());
@@ -603,7 +680,72 @@ public class Server implements Runnable, Serializable {
         }
     }
 
-    public String placeOrder(Object[] info) throws IOException {
+    private String createDrink(Object[] info) throws Exception {
+        String name = (String)info[0];
+        String[] ingredName = (String[])info[1];
+        double[] amount = (double[])info[2];
+        Glass glass = (Glass)info[3];
+        boolean ice = (boolean)info[4];
+        boolean shake = (boolean)info[5];
+        Customer customer = (Customer)info[6];
+        
+        if(!name.isEmpty()) {
+            if(name.length() <= 20) {
+                for(int i = 0; i < name.length(); i++) {
+                    int c = Character.getNumericValue(name.charAt(i));
+                    if(((0 <= c) && (c <= 35)) == false) {
+                        return "The Name of the Drink Cannot Contain Special Characters";
+                    }
+                }  
+
+                double totalAmount = 0;
+                if(ice == true) {
+                    totalAmount = totalAmount - Glass.getVolumeOfIce();
+                }
+
+                if(shake == true) {
+                    totalAmount = totalAmount - Glass.getVolumeOfDillution();
+                }
+
+                for(int i = 0; i < amount.length; i++) {
+                    totalAmount = totalAmount + amount[i];
+                }
+
+                if(totalAmount <= (glass.getVolume())) {
+                    double spiritAmount = 0;
+                    
+                    for(int i = 0; i < ingredName.length; i++) {
+                        Class ingredientClass = Class.forName("RB.Bartender." + ingredName[i].replace(" ", ""));
+                        Method isAlcohol = ingredientClass.getMethod("isAlcohol");
+                        
+                        if((boolean)isAlcohol.invoke(null) == true) {
+                            spiritAmount = spiritAmount + amount[i];
+                        }
+                    }
+                    spiritAmount = spiritAmount*glass.getVolume();
+                    
+                    if(spiritAmount <= 3) {
+                        customer.getCustomizedDrinks().add(new Drink(name, ingredName, amount, glass, ice, shake, null));                        
+                        return "Your Customized Drink has Successfully been Added to the Drink Menu";
+                    }
+                    else {
+                        return "The Drink Cannot Exceed a Total of 3oz of Alcohol";
+                    }
+                }
+                else {
+                    return "The Amount of the Drink Exceeds the Amount the Glass can Hold";
+                }
+            }
+            else {
+                return "The Name of the Drink Cannot Exceed 20 Characters";
+            }
+        }
+        else {
+            return "The Drink Must Have a Name";
+        }
+    }
+    
+    private String placeOrder(Object[] info) throws IOException {
         int number = 1;
         ArrayList<Drink> drinks = (ArrayList<Drink>)info[0];
         Customer customer = (Customer)info[1];
@@ -631,54 +773,61 @@ public class Server implements Runnable, Serializable {
         for(int i = 0; i < drinks.size(); i++) {
             int index = search(getDrinks(), drinks.get(i).getName());
             getDrinks().get(index).setCount(getDrinks().get(index).getCount() + 1);
+            deleteFile("Drinks", getDrinks().get(index).getName());
+            createFile("Drinks", getDrinks().get(index).getName(), getDrinks().get(index));
         }
         
         getOrders().add(new Order(number, drinks, customer));
         createFile("Orders", Integer.toString(number), getOrders().get(getOrders().size() - 1));
         return "Your Order Has Been Placed\nYour Order Number is " + number; 
     }
-    
-    public String addManager(Object[] info) throws IOException {
+        
+    private String addManager(Object[] info) throws IOException {
         String tagNumber = (String)info[0];
         String firstName = (String)info[1];
         String lastName = (String)info[2];
         
         if((firstName.isEmpty() && lastName.isEmpty()) == false) {
-            for(int i = 0; i < firstName.length(); i++) {
-                int c = Character.getNumericValue(firstName.charAt(i));
-                if(((10 <= c) && (c <= 35)) == false) {
-                    return "First Name Cannot Contain Special Characters";
-                }
-            }
-            
-            for(int i = 0; i < lastName.length(); i++) {
-                int c = Character.getNumericValue(lastName.charAt(i));
-                if(((10 <= c) && (c <= 35)) == false) {
-                    return "Last Name Cannot Contain Special Characters";
-                }
-            }
-                    
-            if(new File("RegisteredTags//" + tagNumber + ".txt").exists()) {
-                for(int i = 0; i < getManagers().size(); i++) {
-                    if(getManagers().get(i).getTagNumber().equals(tagNumber)) {
-                        return "The Tag Scanned Is Already Associated To An Account";
+            if(firstName.length() <= 20 && lastName.length() <= 20) {
+                for(int i = 0; i < firstName.length(); i++) {
+                    int c = Character.getNumericValue(firstName.charAt(i));
+                    if(((10 <= c) && (c <= 35)) == false) {
+                        return "First Name Cannot Contain Special Characters";
                     }
                 }
-                
-                getManagers().add(new Manager(tagNumber, firstName, lastName));
-                createFile("Managers", tagNumber, (Manager)getManagers().get(getManagers().size() - 1));
-                return firstName + " " + lastName + "'s Account Is Successfully Created";
+
+                for(int i = 0; i < lastName.length(); i++) {
+                    int c = Character.getNumericValue(lastName.charAt(i));
+                    if(((10 <= c) && (c <= 35)) == false) {
+                        return "Last Name Cannot Contain Special Characters";
+                    }
+                }
+
+                if(new File("RegisteredTags//" + tagNumber + ".txt").exists()) {
+                    for(int i = 0; i < getManagers().size(); i++) {
+                        if(getManagers().get(i).getTagNumber().equals(tagNumber)) {
+                            return "The Tag Scanned Is Already Associated To An Account";
+                        }
+                    }
+
+                    getManagers().add(new Manager(tagNumber, firstName, lastName));
+                    createFile("Managers", tagNumber, (Manager)getManagers().get(getManagers().size() - 1));
+                    return firstName + " " + lastName + "'s Account Is Successfully Created";
+                }
+                else {
+                    return "The Tag Scanned is Not a Registered Tag";
+                }
             }
             else {
-                return "The Tag Scanned Is Not A Registered Tag";
+                return "The First Name or Last Name Cannot Exceed 20 Characters";
             }
         }
         else {
-            return "Please Enter A First Name And A Last Name";
+            return "Please Enter a First Name and a Last Name";
         }
     }
 
-    public String addCustomer(Object[] info) throws IOException {
+    private String addCustomer(Object[] info) throws IOException {
         String tagNumber = (String)info[0];
         String firstName = (String)info[1];
         String lastName = (String)info[2];
@@ -686,41 +835,46 @@ public class Server implements Runnable, Serializable {
         String gender = (String)info[4];
         
         if((firstName.isEmpty() && lastName.isEmpty()) == false) {
-            for(int i = 0; i < firstName.length(); i++) {
-                int c = Character.getNumericValue(firstName.charAt(i));
-                if(((10 <= c) && (c <= 35)) == false) {
-                    return "First Name Cannot Contain Special Characters";
+            if(firstName.length() <= 20 && lastName.length() <= 20) {
+                for(int i = 0; i < firstName.length(); i++) {
+                    int c = Character.getNumericValue(firstName.charAt(i));
+                    if(((10 <= c) && (c <= 35)) == false) {
+                        return "First Name Cannot Contain Special Characters";
+                    }
                 }
-            }
-            
-            for(int i = 0; i < lastName.length(); i++) {
-                int c = Character.getNumericValue(lastName.charAt(i));
-                if(((10 <= c) && (c <= 35)) == false) {
-                    return "Last Name Cannot Contain Special Characters";
+
+                for(int i = 0; i < lastName.length(); i++) {
+                    int c = Character.getNumericValue(lastName.charAt(i));
+                    if(((10 <= c) && (c <= 35)) == false) {
+                        return "Last Name Cannot Contain Special Characters";
+                    }
                 }
-            }
-            if(birthday.isBefore(LocalDate.now())) {
-                if(gender.equals("Male") || gender.equals("Female")) {
-                    if(new File("RegisteredTags//" + tagNumber + ".txt").exists()) {
-                        for(int i = 0; i < getCustomers().size(); i++) {
-                            if(getCustomers().get(i).getTagNumber().equals(tagNumber)) {
-                                return "The Tag Scanned Is Already Associated To An Account";
+                if(birthday.isBefore(LocalDate.now())) {
+                    if(gender.equals("Male") || gender.equals("Female")) {
+                        if(new File("RegisteredTags//" + tagNumber + ".txt").exists()) {
+                            for(int i = 0; i < getCustomers().size(); i++) {
+                                if(getCustomers().get(i).getTagNumber().equals(tagNumber)) {
+                                    return "The Tag Scanned Is Already Associated To An Account";
+                                }
                             }
+                            getCustomers().add(new Customer(tagNumber, firstName, lastName, birthday, gender));
+                            createFile("Customers", tagNumber, (Customer)getCustomers().get(getCustomers().size() - 1));
+                            return firstName + " " + lastName + "'s Account Is Successfully Created";
                         }
-                        getCustomers().add(new Customer(tagNumber, firstName, lastName, birthday, gender));
-                        createFile("Customers", tagNumber, (Customer)getCustomers().get(getCustomers().size() - 1));
-                        return firstName + " " + lastName + "'s Account Is Successfully Created";
+                        else {
+                            return "The Tag Scanned Is Not A Registered Tag";
+                        }
                     }
                     else {
-                        return "The Tag Scanned Is Not A Registered Tag";
+                        return "Gender Must Be Either Male Or Female";
                     }
                 }
                 else {
-                    return "Gender Must Be Either Male Or Female";
+                    return "Please Enter A Valid Birthday";
                 }
             }
             else {
-                return "Please Enter A Valid Birthday";
+                return "The First Name or Last Name Cannot Exceed 20 Characters";
             }
         }
         else {
@@ -728,7 +882,7 @@ public class Server implements Runnable, Serializable {
         }
     }
     
-    public String registerTags(String tagNumber) {
+    private String registerTags(String tagNumber) {
         try {
             File tag = new File("RegisteredTags//" + tagNumber + ".txt");
             if(!tag.exists()) {
@@ -771,6 +925,10 @@ public class Server implements Runnable, Serializable {
                     out.writeObject((Order)contents);
                     break;
                     
+                case "Drinks":
+                    out.writeObject((Drink)contents);
+                    break;
+                    
                 default:
                     break;
             }
@@ -794,7 +952,7 @@ public class Server implements Runnable, Serializable {
         return answer;
     }
     
-    public int search(ArrayList<Drink> drinks, String name) {
+    private int search(ArrayList<Drink> drinks, String name) {
         int low = 0;
         int high = drinks.size() - 1;
         int middle;
@@ -806,6 +964,27 @@ public class Server implements Runnable, Serializable {
                 low = middle + 1;
             }
             else if (drinks.get(middle).getName().compareTo(name) > 0) {
+                high = middle - 1;
+            }
+            else {
+                return middle;
+            }
+        }
+        return -1;
+    }
+    
+    private int nameSearch(ArrayList<String> drinks, String name) {
+        int low = 0;
+        int high = drinks.size() - 1;
+        int middle;
+
+        while(low <= high) {
+            middle = (low + high) / 2;
+
+            if(drinks.get(middle).compareTo(name) < 0) {
+                low = middle + 1;
+            }
+            else if (drinks.get(middle).compareTo(name) > 0) {
                 high = middle - 1;
             }
             else {
@@ -866,27 +1045,27 @@ public class Server implements Runnable, Serializable {
         return drinks;
     }
     
-    public boolean getLoggedIn() {
+    private boolean getLoggedIn() {
         return loggedIn;
     }
     
-    public void setLoggedIn(boolean loggedIn) {
+    private void setLoggedIn(boolean loggedIn) {
         this.loggedIn = loggedIn;
     }
     
-    public Socket getSocket() {
+    private Socket getSocket() {
         return socket;
     }
     
-    public ArrayList<ObjectOutputStream> getClients() {
+    private ArrayList<ObjectOutputStream> getClients() {
         return clients;
     }
     
-    public void sendObject(Object obj) throws IOException {
+    private void sendObject(Object obj) throws IOException {
         output.writeObject(obj);
     }
     
-    public Object receiveObject() throws IOException, ClassNotFoundException {
+    private Object receiveObject() throws IOException, ClassNotFoundException {
         return input.readObject();
     }  
     

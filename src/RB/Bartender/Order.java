@@ -33,5 +33,4 @@ public class Order implements Serializable {
     public Customer getCustomer() {
         return customer;
     }
-    
 }

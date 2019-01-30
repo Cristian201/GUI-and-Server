@@ -26,6 +26,7 @@ public class Customer extends Account implements Serializable {
     private int numOfStrongDrinks;
     private ArrayList<Drink> lastOrder = new ArrayList<>();
     private ArrayList<Drink> cart = new ArrayList<>();
+    private ArrayList<Drink> customizedDrinks = new ArrayList<>();
     
     public Customer(String tagNumber, String firstName, String lastName, LocalDate birthday, String gender) {
         super(tagNumber, firstName, lastName);
@@ -119,6 +120,10 @@ public class Customer extends Account implements Serializable {
 
     public ArrayList<Drink> getCart() {
         return cart;
+    }
+    
+    public ArrayList<Drink> getCustomizedDrinks() {
+        return customizedDrinks;
     }
     
     public double[] calculateBAC(Drink drink) {

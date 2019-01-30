@@ -57,4 +57,8 @@ public class TripleSec extends Ingredient implements Serializable, Cloneable {
         drinks.add(new Drink("Triple Sec On The Rocks", new String[]{"Triple Sec"}, new double[]{0.375}, Glass.getRock(), true, false, null));
         drinks.add(new Drink("Triple Sec Shot", new String[]{"Triple Sec"}, new double[]{1.0}, Glass.getShot(), false, true, null));
     }
+        
+    public static boolean isAlcohol() {
+        return true;
+    }
 }

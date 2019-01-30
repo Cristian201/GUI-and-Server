@@ -56,4 +56,8 @@ public class SodaWater extends Ingredient implements Serializable, Cloneable {
         drinks.add(new Drink("Orange Soda", new String[]{"Orange Juice", "Soda Water"}, new double[]{0.75, 0.25}, Glass.getHighball(), true, false, null));
         drinks.add(new Drink("Soda Water", new String[]{"Soda Water"}, new double[]{1.0}, Glass.getHighball(), true, false, null));
     }
+        
+    public static boolean isAlcohol() {
+        return false;
+    }
 }

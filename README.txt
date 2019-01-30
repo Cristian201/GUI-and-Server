@@ -12,6 +12,7 @@ Current Features:
 - register tags
 - update all kiosks if there is an updated drinkMenu
 - notify manager if customer reaches a certain BAC
+- customer is able to customize their own drinks
 
 
 
