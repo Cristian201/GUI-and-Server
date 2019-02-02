@@ -132,25 +132,11 @@ public class Server implements Runnable, Serializable {
             */
             initServer();
             getClients().add(output);
-
-            /*
-            addCustomer(new Object[] {"2", "Anthony", "Spiteri", LocalDate.of(1997, 9, 11), "Male"});
-            Customer cust = getCustomers().get(getCustomers().size() - 1);
-            cust.setBAC(0.05);
-            cust.setGramsOfAlcohol(9.562);
-            System.out.println("bac: " + cust.getBAC());
-            System.out.println("grams: " + cust.getGramsOfAlcohol());
-            System.out.println("befre");
-            sendObject(cust);
-            System.out.println("after");
-            Customer cust1 = (Customer)receiveObject();
-            System.out.println("new bac: " + cust1.getBAC());
-            System.out.println("new grams: " + cust1.getGramsOfAlcohol());
-            */
             
             String type = (String)receiveObject();  // receives the type of system connected
             if(type.equals("Kiosk")) {
                 if(getManagers().isEmpty()) {
+                    System.out.println("no managers registered");
                     sendObject(registerTags((String)receiveObject()));
                     sendObject(addManager((Object[])receiveObject()));
                 }
@@ -356,7 +342,14 @@ public class Server implements Runnable, Serializable {
     private Object customerMethods(String method) throws Exception {
         switch(method) {
             case "getDrinkMenu":
-                TreeSet<Drink> drinks = new TreeSet<>(getDrinkMenu());  
+                // gets all ingredients in the Robotic Bartender
+                ArrayList<String> ingred = new ArrayList<>();
+                for(int i = 0; i < getIngredients().size(); i++) {
+                    ingred.add(getIngredients().get(i).getIngredient().getType());
+                }
+                
+                // gets Customer object and adds their customized drinks to the drinkMenu
+                ArrayList<Drink> drinks = new ArrayList<>(getDrinkMenu());  
                 Customer customer = (Customer)receiveObject();
                 ArrayList<String> ingredientNames = new ArrayList<>();                          // list of all ingredient names in Robotic Bartender
             
@@ -395,18 +388,35 @@ public class Server implements Runnable, Serializable {
                         drinks.add(new Drink(drink.getName(), ingredientBrands, drink.getAmount(), drink.getGlass(), drink.getIce(), drink.getShake(), drink.getPrice(), spiritAmount));
                     }
                 }
+                
+                TreeSet<String> strength = new TreeSet<>();
+                TreeSet<String> type = new TreeSet<>();
+                
+                for(int i = 0; i < drinks.size(); i++) {
+                    strength.add(drinks.get(i).getStrength());
+                }
+                
+                for(int i = 0; i < drinks.size(); i++) {
+                    type.add(drinks.get(i).getType());
+                }
+                
+                // sends all ingredients contained in the drinkMenu
+                Collections.sort(ingred);
+                sendObject(ingred); 
+                
+                // sends all drink strengths contained in the drinkMenu
+                sendObject(strength); 
+                
+                // sends all drink types contained in the drinkMenu
+                sendObject(type); 
+                
+                // sends drinkMenu
                 return drinks;
                 
             case "addCustomer":
                 return addCustomer((Object[])receiveObject());
                 
             case "filterDrinkMenu":
-                ArrayList<String> ingred = new ArrayList<>();
-                for(int i = 0; i < getIngredients().size(); i++) {
-                    ingred.add(getIngredients().get(i).getIngredient().getType());
-                }
-                Collections.sort(ingred);
-                sendObject(ingred); // sends all ingredients in the Robotic Bartender
                 return filterDrinkMenu((String[])receiveObject());
                 
             case "placeOrder":
@@ -1098,7 +1108,9 @@ public class Server implements Runnable, Serializable {
             case "k": 
                 Socket socket = new Socket(getDomainName(), getPort()); 
                 System.out.println("Connecting To " + getDomainName() + " On Port " + getPort());
-                new Thread(new Kiosk(socket)).start();
+                Thread thread = new Thread(new Kiosk(socket));
+                thread.setName("Server");
+                thread.start();
                 break;
             
             case "b":

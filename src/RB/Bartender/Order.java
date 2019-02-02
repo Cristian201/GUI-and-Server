@@ -19,7 +19,6 @@ public class Order implements Serializable {
         this.number = number;
         this.drinks = drinks;
         this.customer = customer;
-        
     }
     
     public int getNumber() {

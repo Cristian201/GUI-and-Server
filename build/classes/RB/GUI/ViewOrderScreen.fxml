@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.text.*?>
+<?import java.lang.*?>
+<?import java.net.*?>
+<?import java.util.*?>
+<?import javafx.scene.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<AnchorPane id="AnchorPane" prefHeight="534.0" prefWidth="800.0" styleClass="mainFxmlClass" xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/8" fx:controller="RB.GUI.ViewOrderScreenController">
+    <stylesheets>
+        <URL value="@Lime-Blue_Theme.css" />
+    </stylesheets>
+   <children>
+      <Separator layoutY="490.0" prefHeight="3.0" prefWidth="800.0" />
+      <Button layoutX="439.0" layoutY="494.0" mnemonicParsing="false" onAction="#backButtonWasPushed" text="Back to Customer Menu">
+         <font>
+            <Font size="18.0" />
+         </font>
+      </Button>
+      <Button layoutX="650.0" layoutY="494.0" mnemonicParsing="false" onAction="#logoutButtonWasPushed" prefWidth="100.0" text="Logout">
+         <font>
+            <Font size="18.0" />
+         </font>
+      </Button>
+      <TableView fx:id="viewOrderTable" layoutX="11.0" layoutY="11.0" prefHeight="470.0" prefWidth="514.0">
+        <columns>
+          <TableColumn fx:id="nameColumn" prefWidth="235.0" text="Drink Name" />
+          <TableColumn fx:id="priceColumn" prefWidth="268.0" text="Drink Price" />
+        </columns>
+      </TableView>
+      <VBox alignment="TOP_CENTER" layoutX="529.0" layoutY="11.0" prefHeight="470.0" prefWidth="250.0" spacing="100.0">
+         <children>
+            <Label text="Total Price:">
+               <font>
+                  <Font size="18.0" />
+               </font>
+            </Label>
+            <Label fx:id="cost">
+               <font>
+                  <Font size="18.0" />
+               </font>
+            </Label>
+            <Button fx:id="checkoutButton" mnemonicParsing="false" prefWidth="100.0" text="Checkout">
+               <font>
+                  <Font size="18.0" />
+               </font>
+            </Button>
+         </children>
+         <padding>
+            <Insets top="20.0" />
+         </padding>
+      </VBox>
+   </children>
+</AnchorPane>

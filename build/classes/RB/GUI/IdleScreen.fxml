@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.text.*?>
+<?import javafx.geometry.*?>
+<?import javafx.scene.image.*?>
+<?import java.lang.*?>
+<?import java.util.*?>
+<?import javafx.scene.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<AnchorPane id="AnchorPane" prefHeight="534.0" prefWidth="800.0" stylesheets="@Lime-Blue_Theme.css" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="RB.GUI.IdleScreenController">
+   <children>
+      <ImageView fx:id="photo" fitHeight="539.0" fitWidth="800.0" pickOnBounds="true" preserveRatio="true">
+         <viewport>
+            <Rectangle2D />
+         </viewport>
+         <image>
+            <Image url="@../../../IdleScreen.jpeg" />
+         </image>
+      </ImageView>
+      <Label layoutX="267.0" layoutY="258.0" text="Welcome to the Robotic Bartender!" textFill="WHITE">
+         <font>
+            <Font name="System Bold" size="16.0" />
+         </font>
+      </Label>
+      <Button alignment="CENTER" layoutX="251.0" layoutY="291.0" mnemonicParsing="false" onAction="#startupButtonWasPushed" prefWidth="300.0" text="Tap here to login">
+         <font>
+            <Font size="18.0" />
+         </font></Button>
+   </children>
+</AnchorPane>

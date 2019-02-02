@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.text.*?>
+<?import java.lang.*?>
+<?import java.util.*?>
+<?import javafx.scene.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<AnchorPane id="AnchorPane" prefHeight="534.0" prefWidth="800.0" stylesheets="@Lime-Blue_Theme.css" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="RB.GUI.LoginScreenController">
+   <children>
+      <Label layoutX="13.0" layoutY="30.0" text="Please Scan your RFID Tag now on the reader below">
+         <font>
+            <Font size="34.0" />
+         </font>
+      </Label>
+      <Label layoutX="360.0" layoutY="140.0" text="OR">
+         <font>
+            <Font size="34.0" />
+         </font>
+      </Label>
+      <Label layoutX="94.0" layoutY="242.0" text="Enter your RFID Tag number manually:">
+         <font>
+            <Font size="34.0" />
+         </font>
+      </Label>
+      <PasswordField fx:id="tagNumber" layoutX="308.0" layoutY="335.0" promptText="Tag Number" />
+      <Button layoutX="333.0" layoutY="403.0" mnemonicParsing="false" onAction="#loginButtonWasPushed" prefWidth="100.0" text="Login">
+         <font>
+            <Font size="18.0" />
+         </font>
+      </Button>
+      <Button layoutX="650.0" layoutY="494.0" mnemonicParsing="false" onAction="#backButtonWasPushed" prefWidth="100.0" text="Back">
+         <font>
+            <Font size="18.0" />
+         </font>
+      </Button>
+      <Separator layoutY="490.0" prefHeight="3.0" prefWidth="800.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="490.0" />
+   </children>
+</AnchorPane>

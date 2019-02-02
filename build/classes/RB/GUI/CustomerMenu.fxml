@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.media.*?>
+<?import javafx.scene.text.*?>
+<?import java.lang.*?>
+<?import java.util.*?>
+<?import javafx.scene.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<AnchorPane id="AnchorPane" prefHeight="534.0" prefWidth="800.0" stylesheets="@Lime-Blue_Theme.css" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="RB.GUI.CustomerMenuController">
+   <children>
+      <Label layoutX="120.0" layoutY="14.0" text="Welcome to the Robotic Bartender!">
+         <font>
+            <Font size="36.0" />
+         </font>
+      </Label>
+      <Button layoutX="650.0" layoutY="494.0" mnemonicParsing="false" onAction="#logOutButtonWasPushed" prefWidth="100.0" text="Logout">
+         <font>
+            <Font size="18.0" />
+         </font>
+      </Button>
+      <Button layoutX="90.0" layoutY="494.0" mnemonicParsing="false" prefWidth="100.0" text="View Order">
+         <font>
+            <Font size="18.0" />
+         </font>
+      </Button>
+      <Separator layoutY="490.0" prefHeight="3.0" prefWidth="800.0" />
+      <Label layoutX="152.0" layoutY="61.0" text="How would you like to select your drink today?">
+         <font>
+            <Font size="24.0" />
+         </font>
+      </Label>
+      <VBox alignment="CENTER" layoutX="14.0" layoutY="96.0" prefHeight="394.0" prefWidth="386.0" spacing="193.0">
+         <children>
+            <Button mnemonicParsing="false" prefHeight="100.0" text="Create your own Drink!">
+               <font>
+                  <Font size="18.0" />
+               </font>
+            </Button>
+         </children>
+      </VBox>
+      <VBox alignment="CENTER" layoutX="400.0" layoutY="96.0" prefHeight="394.0" prefWidth="386.0" spacing="193.0">
+         <children>
+            <Button mnemonicParsing="false" onAction="#drinksMenuButtonWasPushed" prefHeight="100.0" text="Drink Menu">
+               <font>
+                  <Font size="18.0" />
+               </font></Button>
+         </children>
+      </VBox>
+   </children>
+</AnchorPane>

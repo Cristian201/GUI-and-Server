@@ -1,14 +1,18 @@
 package RB.Bartender;
 
+import java.awt.Toolkit;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import static java.lang.System.out;
 import java.net.Socket;
+import java.net.URL;
 import java.time.LocalDate;
 import java.time.Period;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.ResourceBundle;
 import java.util.TreeSet;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
@@ -16,6 +20,26 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.SynchronousQueue;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javafx.application.Application;
+import static javafx.application.Application.launch;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javafx.event.ActionEvent;
+import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
+import javafx.fxml.Initializable;
+import javafx.scene.Node;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
+import javafx.scene.control.Button;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.Label;
+import javafx.scene.control.PasswordField;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
+import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.image.ImageView;
+import javafx.stage.Stage;
 
 /**
  *
@@ -24,21 +48,40 @@ import java.util.logging.Logger;
  *          Shahezad Kassam
  */
 
-public class Kiosk implements Runnable, Serializable {
+public class Kiosk extends Application implements Runnable, Serializable {
     private Socket socket;
-    private ObjectOutputStream output;
+    private static ObjectOutputStream output;
     private static ObjectInputStream input;
     private final int kioskNumber = 1;
-    private Customer customer;
-    private Manager manager;
-    private ArrayList<Drink> drinkMenu = new ArrayList<>();
-    public Thread updateThread;
-    private SynchronousQueue queue = new SynchronousQueue();
+    private static Customer customer;
+    private static Manager manager;
+    private static ArrayList<Drink> drinkMenu = new ArrayList<>();
+    private static SynchronousQueue queue = new SynchronousQueue();  
+    private static ArrayList<String> orderOfWindows = new ArrayList<>();
+    private final double[] screenSize = {Toolkit.getDefaultToolkit().getScreenSize().getWidth(), Toolkit.getDefaultToolkit().getScreenSize().getHeight()};
     
+    @FXML private PasswordField tagNumber;
+
+
+    public Kiosk() {
+        
+    }
+
     public Kiosk(Socket socket) throws IOException {
         this.socket = socket;
         this.output = new ObjectOutputStream(getSocket().getOutputStream());
         this.input = new ObjectInputStream(getSocket().getInputStream());
+    }
+    
+    @Override
+    public void start(Stage primaryStage) throws Exception {
+        Parent windowParent = FXMLLoader.load(getClass().getResource("/RB/GUI/IdleScreen.fxml"));
+        Scene screen = new Scene(windowParent);
+        getOrderOfWindows().add("/RB/GUI/IdleScreen.fxml");
+        
+        primaryStage.setScene(screen);
+        primaryStage.setMaximized(true);
+        primaryStage.show();
     }
 
     @Override
@@ -46,8 +89,9 @@ public class Kiosk implements Runnable, Serializable {
         try {
             System.out.println("Kiosk Connected");
             sendObject("Kiosk");    // notifies the server that a kiosk is connected
-            createThread();
-            
+            createUpdateThread();
+            launch("");
+             
             /*
             sendObject("1");
             System.out.println(receiveObject());
@@ -57,15 +101,16 @@ public class Kiosk implements Runnable, Serializable {
             
             //login("1");
 
-            managerFunctions();
+            //managerFunctions();
             
             //logout();
             //socket.close();
             
-        } catch (IOException | ClassNotFoundException | InterruptedException ex) {
+        } catch (IOException ex) {
             Logger.getLogger(Kiosk.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
+
 
     public void managerFunctions() throws IOException, ClassNotFoundException, InterruptedException {
   
@@ -77,11 +122,13 @@ public class Kiosk implements Runnable, Serializable {
         
     }
     
-    public void login(String tagNumber) throws IOException, ClassNotFoundException, InterruptedException {
+    public String login(String tagNumber) throws IOException, ClassNotFoundException, InterruptedException {
         sendObject("Login");
         sendObject(tagNumber);    // tag is scanned and the tag number is sent to verify
-        String type = (String)receiveObject();
+        return (String)receiveObject();
       
+        
+        /*
         switch (type) {
             case "Customer":
                 setCustomer((Customer)receiveObject());
@@ -91,7 +138,7 @@ public class Kiosk implements Runnable, Serializable {
                 setDrinkMenu((TreeSet<Drink>)receiveObject());
                 System.out.println(getDrinkMenu().size());
 
-                /*
+                
                 sendObject("filterDrinkMenu");
                 ArrayList<String> ingred = (ArrayList<String>)receiveObject();
                 for(int i = 0; i < ingred.size(); i++)
@@ -101,7 +148,7 @@ public class Kiosk implements Runnable, Serializable {
                 for(int i = 0; i < getDrinkMenu().size(); i++)
                     System.out.println(getDrinkMenu().get(i).getName()+"  "+getDrinkMenu().get(i).getPrice());
                 
-                */
+                
                 System.out.println("about to filter menu");
                 sendObject("filterDrinkMenu");
                 ArrayList<String> ingredients = new ArrayList<>((ArrayList<String>)receiveObject());    // gonna receive all the ingredients in the Robotic Bartender
@@ -168,7 +215,9 @@ public class Kiosk implements Runnable, Serializable {
             default:
                 System.out.println("Invalid Tag");
                 break;
-        }
+        
+    }
+    */
     }
     
     public String addToCart(Drink drink) {
@@ -281,9 +330,9 @@ public class Kiosk implements Runnable, Serializable {
         receiveObject();
     }
     
-    public void logout() throws IOException, ClassNotFoundException, InterruptedException {
+    public static void logout() throws IOException, ClassNotFoundException, InterruptedException {
         sendObject("Logout");
-        
+              
         if(getCustomer() != null && getManager() == null) {
             sendObject(getCustomer());
             System.out.println(receiveObject());      
@@ -305,46 +354,58 @@ public class Kiosk implements Runnable, Serializable {
         return socket;
     }
     
-    public void sendObject(Object obj) throws IOException {
+    public static void sendObject(Object obj) throws IOException {
         output.writeObject(obj);
     }
     
-    public Object receiveObject() throws IOException, ClassNotFoundException, InterruptedException {
+    public static Object receiveObject() throws IOException, ClassNotFoundException, InterruptedException {
         return queue.take();
     }  
     
-    private Customer getCustomer() {
+    public static Customer getCustomer() {
         return customer;
     }
     
-    private void setCustomer(Customer customer) {
-        this.customer = customer;
+    public static void setCustomer(Customer customer) {
+        Kiosk.customer = customer;
     }
     
-    private Manager getManager() {
+    public static Manager getManager() {
         return manager;
     }
     
-    private void setManager(Manager manager) {
-        this.manager = manager;
+    public static void setManager(Manager manager) {
+        Kiosk.manager = manager;
     }
     
-    public ArrayList<Drink> getDrinkMenu() {
+    public static ArrayList<Drink> getDrinkMenu() {
         return drinkMenu;
     }
     
-    public void setDrinkMenu(TreeSet<Drink> drinks) {
+    public static ObservableList<Drink> getObservableDrinkMenu() {
+        return FXCollections.observableArrayList(drinkMenu);
+    }
+    
+    public static void setDrinkMenu(TreeSet<Drink> drinks) {
         drinkMenu.clear();
         drinkMenu = new ArrayList<>(drinks);
     }
     
-    public void setDrinkMenu(ArrayList<Drink> drinks) {
+    public static void setDrinkMenu(ArrayList<Drink> drinks) {
         drinkMenu.clear();
         drinkMenu = new ArrayList<>(drinks);
     }
     
-    public void createThread() {
-        updateThread = new Thread(() -> {
+    public static ArrayList<String> getOrderOfWindows() {
+        return orderOfWindows;
+    }
+    
+    private double[] getScreenSize() {
+        return screenSize;
+    }
+ 
+    public void createUpdateThread() {
+        new Thread(() -> {
             try {
                 while(true) {
                     Object message = input.readObject();
@@ -375,7 +436,239 @@ public class Kiosk implements Runnable, Serializable {
             } catch (IOException | ClassNotFoundException | InterruptedException ex) {
                 Logger.getLogger(Kiosk.class.getName()).log(Level.SEVERE, null, ex);
             }   
-        });
-        updateThread.start();
+        }).start();
     }
+    
+    // GUI SHIT ------------------------------------------------------
+    /*
+    public void backButtonWasPushed(ActionEvent event) throws IOException {
+        //getOrderOfWindows().remove(getOrderOfWindows().size() - 1);
+        //setScreen(getOrderOfWindows().get(getOrderOfWindows().size() - 1), event);
+    
+        Kiosk.getOrderOfWindows().remove(Kiosk.getOrderOfWindows().size() - 1);
+        Parent windowParent = FXMLLoader.load(getClass().getResource(Kiosk.getOrderOfWindows().get(Kiosk.getOrderOfWindows().size() - 1)));
+        Scene screen = new Scene(windowParent);
+        
+        Stage window = (Stage)((Node)event.getSource()).getScene().getWindow();
+        window.setScene(screen);
+        window.setMaximized(true);
+        window.show();
+        
+    }
+    
+    // called from IdleScreen
+    public void startupButtonWasPushed(ActionEvent event) throws IOException {
+        Parent windowParent = FXMLLoader.load(getClass().getResource("/RB/GUI/LoginScreen.fxml"));
+        Scene screen = new Scene(windowParent);
+        getOrderOfWindows().add("/RB/GUI/LoginScreen.fxml");
+
+        Stage window = (Stage)((Node)event.getSource()).getScene().getWindow();
+        window.setScene(screen);
+        window.setMaximized(true);
+        window.show();
+    }
+    
+    // called from LoginScreen
+    public void loginButtonWasPushed(ActionEvent event) throws IOException, InterruptedException, ClassNotFoundException {
+  
+        System.out.println("tagNumber: " + tagNumber.getText());
+
+        sendObject("Login");
+        sendObject(tagNumber.getText());    // tag is scanned and the tag number is sent to verify
+        String accountType = (String)receiveObject();
+        
+        if(accountType.equals("Customer")) {
+            setCustomer((Customer)receiveObject());
+            setScreen("/RB/GUI/CustomerMenu.fxml", event);
+        }
+        else if(accountType.equals("Manager")) {
+            setManager((Manager)receiveObject());
+            setScreen("/RB/GUI/ManagerMenu.fxml", event);
+        }
+    } 
+
+    public void logOutButtonWasPushed(ActionEvent event) throws IOException, ClassNotFoundException, InterruptedException {
+        Kiosk.logout();
+        Kiosk.getOrderOfWindows().clear();
+        setScreen("/RB/GUI/IdleScreen.fxml", event);
+        
+    }
+    
+    public void viewOrderButtonWasPushed(ActionEvent event) throws IOException {        
+        setScreen("/RB/GUI/ViewOrderScreen.fxml", event);
+    }
+    
+    
+    @FXML private ComboBox ingredientBox;
+    @FXML private ComboBox strengthBox;
+    @FXML private ComboBox typeBox;
+    
+    
+    @FXML private TableView<Drink> drinksTable;
+    @FXML private Button viewDrinkButton;
+    @FXML private ImageView images;
+    @FXML private TableColumn<Drink, String> nameColumn;
+    @FXML private TableColumn<Drink, String> priceColumn;
+    
+    
+    // called in CustomerMenu
+    public void drinksMenuButtonWasPushed(ActionEvent event) throws Exception {
+        //sendObject("getDrinkMenu");
+        //sendObject(getCustomer());
+        
+
+        //ingredientBox.getItems().addAll((ArrayList<String>)receiveObject());
+        //ingredientBox.getItems().addAll("Weak", "Medium", "Strong");
+        //strengthBox.getItems().addAll("Weak", "Medium", "Strong");
+        //typeBox.getItems().addAll("Cocktail", "Martini", "Mixed Drinks", "On The Rocks", "Neat", "Shot");
+        
+        List<String> list = new ArrayList<String>();
+        list.add("Item A");
+        list.add("Item B");
+        list.add("Item C");
+        ObservableList obList = FXCollections.observableList(list);
+        
+        
+        Parent windowParent = FXMLLoader.load(getClass().getResource("/RB/GUI/DrinksMenu.fxml"));
+        Scene screen = new Scene(windowParent);
+        
+        //ingredientBox.setItems(obList);
+        //strengthBox.setItems(obList);
+        //typeBox.setItems(obList);
+        
+        ingredientBox.getItems().addAll("Weak", "Medium", "Strong");
+        strengthBox.getItems().addAll("Weak", "Medium", "Strong");
+        typeBox.getItems().addAll("Cocktail", "Martini", "Mixed Drinks", "On The Rocks", "Neat", "Shot");
+        
+        getOrderOfWindows().add("/RB/GUI/DrinksMenu.fxml");
+
+        Stage window = (Stage)((Node)event.getSource()).getScene().getWindow();
+        window.setScene(screen);
+        window.setWidth(getScreenSize()[0]);
+        window.setHeight(getScreenSize()[1]);
+        
+        
+        
+        
+        
+        
+        
+        //nameColumn.setCellValueFactory(new PropertyValueFactory<>("Name"));
+        //priceColumn.setCellValueFactory(new PropertyValueFactory<>("Price"));
+        viewDrinkButton.setDisable(true);  
+
+        
+        //setDrinkMenu((TreeSet<Drink>)receiveObject());
+        window.show();        
+        //setScreen("/RB/GUI/DrinksMenu.fxml", event);
+        
+        
+    }
+    
+    
+    
+    
+    
+    // called in DrinksMenu
+    public void viewDrinkButtonWasPushed(ActionEvent event) throws IOException {
+        /*FXMLLoader loader = new FXMLLoader();
+        loader.setLocation(getClass().getResource("ViewDrinkScreen.fxml"));
+        windowParent = loader.load();
+        screen = new Scene(windowParent);
+        getOrderOfWindows().add("ViewDrinkScreen.fxml");
+        ViewDrinkScreenController controller = loader.getController();
+        controller.initData(drinksTable.getSelectionModel().getSelectedItem());
+        window = (Stage)((Node)event.getSource()).getScene().getWindow();
+        window.setScene(screen); 
+        window.setWidth(getScreenSize()[0]);
+        window.setHeight(getScreenSize()[1]);
+        window.show();  
+    }
+    
+    // called in DrinksMenu
+    public void ingredientBoxWasClicked() {
+        images.setImage(null);
+        this.viewDrinkButton.setDisable(true); 
+    }
+        
+    // called in DrinksMenu
+    public void ingredientBoxWasUpdated() throws Exception {    
+        strengthBox.valueProperty().set(" ");
+        typeBox.valueProperty().set(" ");        
+        
+        if(null != ingredientBox.getValue().toString()) {
+            sendObject("filterDrinkMenu");
+            sendObject(new String[] {"Ingredient", ingredientBox.getValue().toString()});
+            setDrinkMenu((ArrayList<Drink>)receiveObject());            
+            drinksTable.setItems(FXCollections.observableArrayList(getDrinkMenu()));  
+        }
+    }
+    
+    // called in DrinksMenu
+    public void strengthBoxWasClicked() {
+        images.setImage(null);
+        this.viewDrinkButton.setDisable(true); 
+    }
+    
+    // called in DrinksMenu
+    public void strengthBoxWasUpdated() throws Exception {      
+        ingredientBox.valueProperty().set(" ");
+        typeBox.valueProperty().set(" ");    
+        
+        if(null != strengthBox.getValue().toString()) {
+            sendObject("filterDrinkMenu");
+            sendObject(new String[] {"Strength", strengthBox.getValue().toString()});
+            setDrinkMenu((ArrayList<Drink>)receiveObject());            
+            drinksTable.setItems(FXCollections.observableArrayList(getDrinkMenu())); 
+        }
+    }
+    
+    // called in DrinksMenu
+    public void typeBoxWasClicked() {
+        images.setImage(null);
+        this.viewDrinkButton.setDisable(true);
+    }
+    
+    // called in DrinksMenu
+    public void typeBoxWasUpdated() throws Exception {            
+        strengthBox.valueProperty().set(" ");
+        ingredientBox.valueProperty().set(" "); 
+        
+        if(null != typeBox.getValue().toString()) {
+            sendObject("filterDrinkMenu");
+            sendObject(new String[] {"Type", typeBox.getValue().toString()});
+            setDrinkMenu((ArrayList<Drink>)receiveObject());            
+            drinksTable.setItems(FXCollections.observableArrayList(getDrinkMenu())); 
+        }
+    }
+    
+    //NEED TO ADD MOST POPUPAR FILTER OPTION AND PRICE METHODS
+    
+    // called in DrinksMenu
+    public void userClickedOnTable() {
+        this.viewDrinkButton.setDisable(false);  
+    }
+    
+    
+    
+    
+    public void setScreen(String screenName, ActionEvent event) throws IOException {
+        Parent windowParent = FXMLLoader.load(getClass().getResource(screenName));
+        Scene screen = new Scene(windowParent);
+        Kiosk.getOrderOfWindows().add(screenName);
+
+        Stage window = (Stage)((Node)event.getSource()).getScene().getWindow();
+        window.setScene(screen);
+        window.setMaximized(true);
+        window.show();
+    }
+    
+   */
+    
+    
+    
+    
+    
+    
+    
 }

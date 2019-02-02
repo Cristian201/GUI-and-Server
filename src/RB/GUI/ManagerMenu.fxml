@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.text.*?>
+<?import java.lang.*?>
+<?import java.net.*?>
+<?import java.util.*?>
+<?import javafx.scene.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<AnchorPane id="AnchorPane" prefHeight="534.0" prefWidth="800.0" styleClass="mainFxmlClass" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="RB.GUI.ManagerMenuController">
+    <stylesheets>
+        <URL value="@Lime-Blue_Theme.css" />
+    </stylesheets>
+   <children>
+      <Separator layoutY="490.0" prefHeight="3.0" prefWidth="800.0" />
+      <Button layoutX="650.0" layoutY="494.0" mnemonicParsing="false" onAction="#logOutButtonWasPushed" prefWidth="100.0" text="Logout">
+         <font>
+            <Font size="18.0" />
+         </font>
+      </Button>
+      <Label layoutX="14.0" layoutY="14.0" text="What would you like to do today?">
+         <font>
+            <Font size="52.0" />
+         </font>
+      </Label>
+      <HBox alignment="TOP_CENTER" layoutX="14.0" layoutY="89.0" prefHeight="200.0" prefWidth="775.0" spacing="34.0">
+         <children>
+            <Button mnemonicParsing="false" prefHeight="100.0" text="Change a Bottle">
+               <font>
+                  <Font size="18.0" />
+               </font>
+            </Button>
+            <Button mnemonicParsing="false" prefHeight="100.0" text="View Status of All Slots">
+               <font>
+                  <Font size="18.0" />
+               </font>
+            </Button>
+            <Button mnemonicParsing="false" prefHeight="100.0" text="Move Shaker">
+               <font>
+                  <Font size="18.0" />
+               </font>
+            </Button>
+            <Button mnemonicParsing="false" prefHeight="100.0" text="Remove Order From Queue">
+               <font>
+                  <Font size="18.0" />
+               </font>
+            </Button>
+         </children>
+         <padding>
+            <Insets top="48.0" />
+         </padding>
+      </HBox>
+      <HBox alignment="TOP_CENTER" layoutX="14.0" layoutY="289.0" prefHeight="200.0" prefWidth="775.0" spacing="7.0">
+         <children>
+            <Button mnemonicParsing="false" prefHeight="100.0" text="Create New Account">
+               <font>
+                  <Font size="18.0" />
+               </font>
+            </Button>
+            <Button mnemonicParsing="false" prefHeight="100.0" text="Delete Account">
+               <font>
+                  <Font size="18.0" />
+               </font>
+            </Button>
+            <Button mnemonicParsing="false" prefHeight="100.0" text="Lockout/Unlock Customer">
+               <font>
+                  <Font size="18.0" />
+               </font>
+            </Button>
+            <Button mnemonicParsing="false" prefHeight="100.0" text="View All Customer Accounts">
+               <font>
+                  <Font size="18.0" />
+               </font>
+            </Button>
+         </children>
+         <padding>
+            <Insets top="48.0" />
+         </padding>
+      </HBox>
+   </children>
+</AnchorPane>

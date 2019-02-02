@@ -1,6 +1,9 @@
 package RB.Bartender;
 
+import java.io.File;
 import java.io.Serializable;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 
 /**
  *
@@ -179,5 +182,19 @@ public class Drink implements Comparable<Drink>, Serializable, Cloneable {
             }
         }
         return "Strong";
+    }
+    
+    public Image getImage() {
+        File file = new File("DrinkImages/" + getName().replace(" ", "").toLowerCase() + ".jpeg");
+        return new Image(file.toURI().toString());
+    }
+    
+    public static String boolToString(boolean result) {
+        if(result == true) {
+            return "Yes";
+        }
+        else {
+            return "No";
+        }
     }
 }
