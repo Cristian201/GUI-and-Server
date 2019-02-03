@@ -1,6 +1,7 @@
 package RB.GUI;
 
 import RB.Bartender.Kiosk;
+import java.awt.Toolkit;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ResourceBundle;
@@ -9,6 +10,7 @@ import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
 import javafx.animation.Timeline;
 import javafx.event.ActionEvent;
+import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.scene.Node;
@@ -24,7 +26,8 @@ import javafx.util.Duration;
  *          Shahezad Kassam
  */
 
-public class IdleScreenController {
+public class IdleScreenController implements Initializable {
+    
     public void startupButtonWasPushed(ActionEvent event) throws IOException {
         Parent windowParent = FXMLLoader.load(getClass().getResource("/RB/GUI/LoginScreen.fxml"));
         Scene screen = new Scene(windowParent);
@@ -34,5 +37,10 @@ public class IdleScreenController {
         window.setScene(screen);
         window.setMaximized(true);
         window.show();
+    }
+
+    @Override
+    public void initialize(URL location, ResourceBundle resources) {
+
     }
 }

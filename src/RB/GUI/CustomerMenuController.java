@@ -34,7 +34,7 @@ public class CustomerMenuController {
         window.show();
     }
     
-    public void drinksMenuButtonWasPushed(ActionEvent event) throws IOException {
+    public void drinksMenuButtonWasPushed(ActionEvent event) throws Exception {
         Parent windowParent = FXMLLoader.load(getClass().getResource("/RB/GUI/DrinksMenu.fxml"));
         Scene screen = new Scene(windowParent);
         Kiosk.getOrderOfWindows().add("/RB/GUI/DrinksMenu.fxml");

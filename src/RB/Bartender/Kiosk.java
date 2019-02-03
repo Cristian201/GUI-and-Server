@@ -37,8 +37,10 @@ import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
+import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.image.ImageView;
+import javafx.stage.Screen;
 import javafx.stage.Stage;
 
 /**
@@ -60,7 +62,7 @@ public class Kiosk extends Application implements Runnable, Serializable {
     private static ArrayList<String> orderOfWindows = new ArrayList<>();
     private final double[] screenSize = {Toolkit.getDefaultToolkit().getScreenSize().getWidth(), Toolkit.getDefaultToolkit().getScreenSize().getHeight()};
     
-    @FXML private PasswordField tagNumber;
+    @FXML private TextField tagNumber;
 
 
     public Kiosk() {
@@ -76,12 +78,19 @@ public class Kiosk extends Application implements Runnable, Serializable {
     @Override
     public void start(Stage primaryStage) throws Exception {
         Parent windowParent = FXMLLoader.load(getClass().getResource("/RB/GUI/IdleScreen.fxml"));
-        Scene screen = new Scene(windowParent);
+        Scene scene = new Scene(windowParent);
         getOrderOfWindows().add("/RB/GUI/IdleScreen.fxml");
         
-        primaryStage.setScene(screen);
-        primaryStage.setMaximized(true);
+        primaryStage.setScene(scene);
+        primaryStage.setTitle("Robotic Bartender");
+        
+        Screen screen = Screen.getPrimary();
+        javafx.geometry.Rectangle2D bounds = screen.getVisualBounds();
+        primaryStage.setWidth(bounds.getWidth());
+        primaryStage.setHeight(bounds.getHeight());
+        
         primaryStage.show();
+        primaryStage.setMaximized(true);
     }
 
     @Override

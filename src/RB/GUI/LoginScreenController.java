@@ -12,7 +12,7 @@ import javafx.scene.Scene;
 import javafx.stage.Stage;
 import RB.Bartender.*;
 import javafx.fxml.FXML;
-import javafx.scene.control.PasswordField;
+import javafx.scene.control.TextField;
 
 /**
  *
@@ -22,7 +22,7 @@ import javafx.scene.control.PasswordField;
  */
 
 public class LoginScreenController {
-    @FXML private PasswordField tagNumber;
+    @FXML private TextField tagNumber;
     
     public void backButtonWasPushed(ActionEvent event) throws IOException {
         Kiosk.getOrderOfWindows().remove(Kiosk.getOrderOfWindows().size() - 1);
@@ -32,6 +32,18 @@ public class LoginScreenController {
         Stage window = (Stage)((Node)event.getSource()).getScene().getWindow();
         window.setScene(screen);
         window.setMaximized(true);
+        window.show();
+    }
+    
+    public void signUpButtonWasPushed(ActionEvent event) throws Exception
+    {
+        Parent tableViewParent = FXMLLoader.load(getClass().getResource("/RB/GUI/SignUpPage.fxml"));
+        Scene tableViewScene = new Scene(tableViewParent);
+        Kiosk.getOrderOfWindows().add("/RB/GUI/SignUpPage.fxml");
+        
+        //This line gets the Stage information
+        Stage window = (Stage)((Node)event.getSource()).getScene().getWindow();
+        window.setScene(tableViewScene);
         window.show();
     }
     
@@ -48,7 +60,6 @@ public class LoginScreenController {
             
             Stage window = (Stage)((Node)event.getSource()).getScene().getWindow();
             window.setScene(screen);
-            window.setMaximized(true);
             window.show();
         }
         else if(accountType.equals("Manager")) {

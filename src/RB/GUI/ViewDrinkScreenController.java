@@ -30,7 +30,6 @@ public class ViewDrinkScreenController {
     @FXML private Label glassLabel;
     @FXML private Label iceLabel;
     @FXML private Label shakeLabel;
-    @FXML private Label carbonatedLabel;
     @FXML private Label strengthLabel;
     @FXML private Label typeLabel;
     @FXML private Label priceLabel;

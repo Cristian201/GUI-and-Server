@@ -1,3 +1,8 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
 package RB.GUI;
 
 import RB.Bartender.Kiosk;
@@ -17,22 +22,21 @@ import javafx.stage.Stage;
  *
  * @author crist
  */
-public class ManagerMenuController implements Initializable {
+public class SignUpPageController implements Initializable {
 
-    public void logOutButtonWasPushed(ActionEvent event) throws Exception
+   public void signUpButtonWasPushed(ActionEvent event) throws IOException
     {
-        Kiosk.logout();
-        Kiosk.getOrderOfWindows().clear();
-        
-        Parent tableViewParent = FXMLLoader.load(getClass().getResource("/RB/GUI/IdleScreen.fxml"));
+        Parent tableViewParent = FXMLLoader.load(getClass().getResource("/RB/GUI/CustomerMenu.fxml"));
         Scene tableViewScene = new Scene(tableViewParent);
+        Kiosk.getOrderOfWindows().add("/RB/GUI/CustomerMenu.fxml");
         
         //This line gets the Stage information
         Stage window = (Stage)((Node)event.getSource()).getScene().getWindow();
         window.setScene(tableViewScene);
+        window.setMaximized(true);
         window.show();
-    }
-    
+    }  
+   
     @Override
     public void initialize(URL url, ResourceBundle rb) {
         // TODO

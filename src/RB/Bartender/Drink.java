@@ -185,8 +185,8 @@ public class Drink implements Comparable<Drink>, Serializable, Cloneable {
     }
     
     public Image getImage() {
-        File file = new File("DrinkImages/" + getName().replace(" ", "").toLowerCase() + ".jpeg");
-        return new Image(file.toURI().toString());
+        String image = "file:DrinkImages/" + getName().replace(" ", "").toLowerCase() + ".jpeg";
+        return new Image(image);
     }
     
     public static String boolToString(boolean result) {

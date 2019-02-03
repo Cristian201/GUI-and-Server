@@ -39,6 +39,7 @@
     -fx-border-color: divider-color;
     -fx-border-radius: 20;
     -fx-border-width: 2;
+    -fx-font: 25pt "Arial";
 }
 
 .button:pressed {
@@ -51,12 +52,21 @@
     -fx-border-radius: 20;
     -fx-border-width: 3;
     -fx-rotate: 10;
-}
-
-.list-cell {
-    -fx-font: 18pt "Arial";
+    -fx-font: 25pt "Arial";
 }
 
 .table-cell {
-    -fx-font: 18pt "Arial";
+    -fx-font: 25pt "Arial";
+}
+
+.table-view .table-column {
+    -fx-font: 25pt "Arial";
+}
+
+.combo-box {
+    -fx-font-size: 25pt "Arial";
+}
+
+.date-picker {
+    -fx-font-size: 20pt "Arial";
 }

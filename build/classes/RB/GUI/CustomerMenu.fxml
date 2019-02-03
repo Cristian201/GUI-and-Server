@@ -8,43 +8,43 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<AnchorPane id="AnchorPane" prefHeight="534.0" prefWidth="800.0" stylesheets="@Lime-Blue_Theme.css" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="RB.GUI.CustomerMenuController">
+<AnchorPane id="AnchorPane" prefHeight="937.0" prefWidth="1500.0" stylesheets="@Lime-Blue_Theme.css" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="RB.GUI.CustomerMenuController">
    <children>
-      <Label layoutX="120.0" layoutY="14.0" text="Welcome to the Robotic Bartender!">
+      <Label alignment="CENTER" layoutX="120.0" layoutY="14.0" prefHeight="53.0" prefWidth="1237.0" text="Welcome to the Robotic Bartender!">
+         <font>
+            <Font size="48.0" />
+         </font>
+      </Label>
+      <Button layoutX="1200.0" layoutY="865.0" mnemonicParsing="false" onAction="#logOutButtonWasPushed" prefWidth="200.0" text="Logout">
+         <font>
+            <Font size="36.0" />
+         </font>
+      </Button>
+      <Button layoutX="90.0" layoutY="865.0" mnemonicParsing="false" prefWidth="200.0" text="View Order">
+         <font>
+            <Font size="36.0" />
+         </font>
+      </Button>
+      <Separator layoutY="860.0" prefHeight="3.0" prefWidth="1500.0" />
+      <Label alignment="CENTER" layoutX="152.0" layoutY="61.0" prefHeight="82.0" prefWidth="1165.0" text="How would you like to select your drink today?">
          <font>
             <Font size="36.0" />
          </font>
       </Label>
-      <Button layoutX="650.0" layoutY="494.0" mnemonicParsing="false" onAction="#logOutButtonWasPushed" prefWidth="100.0" text="Logout">
-         <font>
-            <Font size="18.0" />
-         </font>
-      </Button>
-      <Button layoutX="90.0" layoutY="494.0" mnemonicParsing="false" prefWidth="100.0" text="View Order">
-         <font>
-            <Font size="18.0" />
-         </font>
-      </Button>
-      <Separator layoutY="490.0" prefHeight="3.0" prefWidth="800.0" />
-      <Label layoutX="152.0" layoutY="61.0" text="How would you like to select your drink today?">
-         <font>
-            <Font size="24.0" />
-         </font>
-      </Label>
-      <VBox alignment="CENTER" layoutX="14.0" layoutY="96.0" prefHeight="394.0" prefWidth="386.0" spacing="193.0">
+      <VBox alignment="CENTER" layoutX="14.0" layoutY="96.0" prefHeight="760.0" prefWidth="730.0" spacing="193.0">
          <children>
-            <Button mnemonicParsing="false" prefHeight="100.0" text="Create your own Drink!">
+            <Button mnemonicParsing="false" prefHeight="300.0" prefWidth="450.0" text="Create your own Drink!">
                <font>
-                  <Font size="18.0" />
+                  <Font size="36.0" />
                </font>
             </Button>
          </children>
       </VBox>
-      <VBox alignment="CENTER" layoutX="400.0" layoutY="96.0" prefHeight="394.0" prefWidth="386.0" spacing="193.0">
+      <VBox alignment="CENTER" layoutX="740.0" layoutY="96.0" prefHeight="760.0" prefWidth="730.0" spacing="193.0">
          <children>
-            <Button mnemonicParsing="false" onAction="#drinksMenuButtonWasPushed" prefHeight="100.0" text="Drink Menu">
+            <Button mnemonicParsing="false" onAction="#drinksMenuButtonWasPushed" prefHeight="300.0" prefWidth="450.0" text="Drink Menu">
                <font>
-                  <Font size="18.0" />
+                  <Font size="36.0" />
                </font></Button>
          </children>
       </VBox>
